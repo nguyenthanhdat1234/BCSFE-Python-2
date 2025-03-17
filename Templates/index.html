@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Cats Save Editor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            padding: 20px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #4a86e8;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        .btn-primary {
+            background-color: #4a86e8;
+            border-color: #4a86e8;
+        }
+        .btn-primary:hover {
+            background-color: #3a76d8;
+            border-color: #3a76d8;
+        }
+        .btn-info {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+            color: white;
+        }
+        .btn-info:hover {
+            background-color: #138496;
+            border-color: #117a8b;
+            color: white;
+        }
+        .header-img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        .alert {
+            border-radius: 10px;
+        }
+        .code-box {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="text-center mb-4">
+            <h1>Battle Cats Save Editor</h1>
+            <p class="text-muted">Chỉnh sửa file lưu của trò chơi Battle Cats một cách dễ dàng</p>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Tải lên file lưu</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="file" class="form-label">Chọn file SAVE_DATA</label>
+                                <input type="file" class="form-control" id="file" name="file" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="country_code" class="form-label">Phiên bản trò chơi</label>
+                                <select class="form-select" id="country_code" name="country_code">
+                                    <option value="en">Tiếng Anh (en)</option>
+                                    <option value="jp">Tiếng Nhật (jp)</option>
+                                    <option value="kr">Tiếng Hàn (kr)</option>
+                                    <option value="tw">Đài Loan (tw)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Tải lên</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Tải về từ mã chuyển giao</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('download_from_codes') }}" method="post">
+                            <div class="mb-3">
+                                <label for="transfer_code" class="form-label">Mã chuyển giao</label>
+                                <input type="text" class="form-control" id="transfer_code" name="transfer_code" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmation_code" class="form-label">Mã xác nhận</label>
+                                <input type="text" class="form-control" id="confirmation_code" name="confirmation_code" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="country_code_download" class="form-label">Phiên bản trò chơi</label>
+                                <select class="form-select" id="country_code_download" name="country_code">
+                                    <option value="en">Tiếng Anh (en)</option>
+                                    <option value="jp">Tiếng Nhật (jp)</option>
+                                    <option value="kr">Tiếng Hàn (kr)</option>
+                                    <option value="tw">Đài Loan (tw)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="game_version" class="form-label">Phiên bản game (ví dụ: 11.3.0)</label>
+                                <input type="text" class="form-control" id="game_version" name="game_version" value="11.3.0" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Tải về</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thêm phần mã có sẵn -->
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Sử dụng mã chuyển giao có sẵn</h5>
+            </div>
+            <div class="card-body">
+                <p>Bạn có thể sử dụng mã chuyển giao có sẵn để tải dữ liệu:</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Transfer Code:</label>
+                            <div class="code-box bg-light p-2 text-center fw-bold">651d49c2e</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Confirmation Code:</label>
+                            <div class="code-box bg-light p-2 text-center fw-bold">5269</div>
+                        </div>
+                    </div>
+                </div>
+                <form action="{{ url_for('download_from_codes') }}" method="post">
+                    <input type="hidden" name="transfer_code" value="651d49c2e">
+                    <input type="hidden" name="confirmation_code" value="5269">
+                    <input type="hidden" name="country_code" value="en">
+                    <input type="hidden" name="game_version" value="11.3.0">
+                    <button type="submit" class="btn btn-info w-100">Sử dụng mã có sẵn</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Thông tin</h5>
+            </div>
+            <div class="card-body">
+                <p>Công cụ này giúp bạn chỉnh sửa file lưu của trò chơi <strong>The Battle Cats</strong> một cách dễ dàng và trực quan.</p>
+                <p>Làm theo hướng dẫn sau để sử dụng:</p>
+                <ol>
+                    <li>Tải lên file lưu SAVE_DATA từ thiết bị của bạn hoặc</li>
+                    <li>Sử dụng mã chuyển giao và mã xác nhận từ trò chơi</li>
+                    <li>Chỉnh sửa thông tin như mong muốn</li>
+                    <li>Tải file lưu đã chỉnh sửa về máy hoặc tạo mã chuyển giao mới</li>
+                </ol>
+                <div class="alert alert-warning">
+                    <strong>Lưu ý:</strong> Việc chỉnh sửa quá nhiều có thể dẫn đến việc tài khoản bị ban. Đặc biệt là khi chỉnh sửa Cat Food, Rare Tickets, Platinum Tickets hoặc Legend Tickets.
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-5 mb-3 text-center text-muted">
+            <p>Dựa trên <a href="https://github.com/fieryhenry/BCSFE-Python" target="_blank">BCSFE-Python</a> của fieryhenry</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

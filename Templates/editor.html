@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor - Battle Cats Save Editor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+            padding: 20px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #4a86e8;
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        .btn-primary {
+            background-color: #4a86e8;
+            border-color: #4a86e8;
+        }
+        .btn-primary:hover {
+            background-color: #3a76d8;
+            border-color: #3a76d8;
+        }
+        .btn-info {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+            color: white;
+        }
+        .btn-info:hover {
+            background-color: #138496;
+            border-color: #117a8b;
+            color: white;
+        }
+        .ms-2 {
+            margin-left: 0.5rem !important;
+        }
+        .mt-2 {
+            margin-top: 0.5rem !important;
+        }
+        .mt-3 {
+            margin-top: 1rem !important;
+        }
+        .tab-content {
+            padding: 20px;
+        }
+        .nav-tabs .nav-link {
+            border-radius: 10px 10px 0 0;
+        }
+        .nav-tabs .nav-link.active {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        .alert {
+            border-radius: 10px;
+        }
+        .cat-id-chip {
+            display: inline-block;
+            padding: 0.25em 0.6em;
+            font-size: 0.875em;
+            font-weight: 700;
+            line-height: 1;
+            color: #fff;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.25rem;
+            background-color: #4a86e8;
+            margin: 0.25rem;
+        }
+        .cat-id-container {
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+        }
+        #transferModal .modal-header {
+            background-color: #4a86e8;
+            color: white;
+        }
+        .code-box {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Battle Cats Save Editor</h1>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Trở về trang chủ
+            </a>
+        </div>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div id="statusMessage" class="alert alert-success d-none" role="alert"></div>
+        
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Thông tin cơ bản</h5>
+                <div>
+                    <a href="{{ url_for('download_save', session_id=session_id) }}" class="btn btn-success btn-sm">
+                        <i class="bi bi-download"></i> Tải xuống
+                    </a>
+                    <button type="button" class="btn btn-primary btn-sm" id="getTransferButton">
+                        <i class="bi bi-share"></i> Lấy mã chuyển giao
+                    </button>
+                    <button type="button" class="btn btn-info btn-sm ms-2" id="autoTransferButton">
+                        <i class="bi bi-arrow-repeat"></i> Tự động gửi mã
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Inquiry Code</h6>
+                                <p class="card-text fw-bold">{{ basic_info.inquiry_code }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">User Rank</h6>
+                                <p class="card-text fw-bold">{{ basic_info.user_rank }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">XP</h6>
+                                <p class="card-text fw-bold">{{ basic_info.xp }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Cat Food</h6>
+                                <p class="card-text fw-bold">{{ basic_info.cat_food }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="editorTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">
+                            <i class="bi bi-gear"></i> Cơ bản
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="cats-tab" data-bs-toggle="tab" data-bs-target="#cats" type="button" role="tab" aria-controls="cats" aria-selected="false">
+                            <i class="bi bi-emoji-smile"></i> Quản lý mèo
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="other-tab" data-bs-toggle="tab" data-bs-target="#other" type="button" role="tab" aria-controls="other" aria-selected="false">
+                            <i class="bi bi-three-dots"></i> Khác
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="editorTabsContent">
+                    <!-- Tab Cơ bản -->
+                    <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Tài nguyên</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="resourceForm">
+                                            <input type="hidden" name="session_id" value="{{ session_id }}">
+                                            <div class="mb-3">
+                                                <label for="catFood" class="form-label">Cat Food</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" id="catFood" name="cat_food" value="{{ basic_info.cat_food }}" min="0" max="99999">
+                                                    <button class="btn btn-outline-primary" type="button" data-resource="cat_food">Cập nhật</button>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="xp" class="form-label">XP</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" id="xp" name="xp" value="{{ basic_info.xp }}" min="0" max="99999999">
+                                                    <button class="btn btn-outline-primary" type="button" data-resource="xp">Cập nhật</button>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="rareTickets" class="form-label">Rare Tickets</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" id="rareTickets" name="rare_tickets" value="{{ basic_info.rare_tickets }}" min="0" max="999">
+                                                    <button class="btn btn-outline-primary" type="button" data-resource="rare_tickets">Cập nhật</button>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="platinumTickets" class="form-label">Platinum Tickets</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" id="platinumTickets" name="platinum_tickets" value="{{ basic_info.platinum_tickets }}" min="0" max="999">
+                                                    <button class="btn btn-outline-primary" type="button" data-resource="platinum_tickets">Cập nhật</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h5 class="mb-0">Cảnh báo</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alert alert-warning">
+                                            <strong>Lưu ý!</strong> Chỉnh sửa quá nhiều tài nguyên như Cat Food, Tickets có thể dẫn đến việc tài khoản bị cảnh báo hoặc bị ban.
+                                        </div>
+                                        <p>Để an toàn, hãy tuân thủ những giới hạn sau:</p>
+                                        <ul>
+                                            <li>Cat Food: Không quá 3000 trong một lần</li>
+                                            <li>Rare Tickets: Không quá 10 trong một lần</li>
+                                            <li>Platinum Tickets: Không quá 3 trong một lần</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab Quản lý mèo -->
+                    <div class="tab-pane fade" id="cats" role="tabpanel" aria-labelledby="cats-tab">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Thêm mèo</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="addCatsForm">
+                                            <div class="mb-3">
+                                                <label for="catRange" class="form-label">Phạm vi ID mèo</label>
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <input type="number" class="form-control" id="catRangeStart" placeholder="Từ" min="1" max="900">
+                                                    </div>
+                                                    <div class="col">
+                                                        <input type="number" class="form-control" id="catRangeEnd" placeholder="Đến" min="1" max="900">
+                                                    </div>
+                                                </div>
+                                                <div class="form-text">Điền phạm vi ID mèo muốn thêm (ví dụ: 1-50)</div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="specificCatIds" class="form-label">ID mèo cụ thể (cách nhau bằng dấu phẩy)</label>
+                                                <input type="text" class="form-control" id="specificCatIds" placeholder="Ví dụ: 1,3,5,10,42">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Danh sách mèo sẽ thêm:</label>
+                                                <div id="selectedCatIds" class="cat-id-container">
+                                                    <div class="text-muted text-center">Chưa có mèo nào được chọn</div>
+                                                </div>
+                                            </div>
+                                            <div class="d-grid">
+                                                <button type="button" id="addCatsButton" class="btn btn-primary" disabled>Thêm mèo</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Nâng cấp & Tiến hóa mèo</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="upgradeCatsForm">
+                                            <div class="mb-3">
+                                                <label for="upgradeCatRange" class="form-label">Phạm vi ID mèo</label>
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <input type="number" class="form-control" id="upgradeCatRangeStart" placeholder="Từ" min="1" max="900">
+                                                    </div>
+                                                    <div class="col">
+                                                        <input type="number" class="form-control" id="upgradeCatRangeEnd" placeholder="Đến" min="1" max="900">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="upgradeSpecificCatIds" class="form-label">ID mèo cụ thể (cách nhau bằng dấu phẩy)</label>
+                                                <input type="text" class="form-control" id="upgradeSpecificCatIds" placeholder="Ví dụ: 1,3,5,10,42">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Danh sách mèo sẽ nâng cấp:</label>
+                                                <div id="selectedUpgradeCatIds" class="cat-id-container">
+                                                    <div class="text-muted text-center">Chưa có mèo nào được chọn</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label for="baseLevel" class="form-label">Cấp độ cơ bản</label>
+                                                    <input type="number" class="form-control" id="baseLevel" value="30" min="1" max="60">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="plusLevel" class="form-label">Cấp độ + (Plus)</label>
+                                                    <input type="number" class="form-control" id="plusLevel" value="0" min="0" max="90">
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row">
+                                                <div class="col-md-6 mb-2">
+                                                    <div class="d-grid">
+                                                        <button type="button" id="upgradeCatsButton" class="btn btn-primary" disabled>Nâng cấp</button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 mb-2">
+                                                    <div class="d-grid">
+                                                        <button type="button" id="evolveCatsButton" class="btn btn-secondary" disabled>Tiến hóa</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab Khác -->
+                    <div class="tab-pane fade" id="other" role="tabpanel" aria-labelledby="other-tab">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Các tùy chọn khác</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-grid gap-2">
+                                            <button type="button" id="clearTutorialButton" class="btn btn-outline-primary">Hoàn thành hướng dẫn</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="mb-0">Chú ý</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alert alert-info">
+                                            <p>Không quên lưu file sau khi chỉnh sửa hoặc tạo mã chuyển giao mới!</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal cho mã chuyển giao -->
+    <div class="modal fade" id="transferModal" tabindex="-1" aria-labelledby="transferModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="transferModalLabel">Mã chuyển giao</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Sử dụng các mã sau để chuyển dữ liệu vào trò chơi:</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Mã chuyển giao:</label>
+                        <div class="code-box" id="transferCode">------</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Mã xác nhận:</label>
+                        <div class="code-box" id="confirmationCode">------</div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Lưu ý:</strong> Mã chuyển giao chỉ có hiệu lực trong vòng 1 giờ. Hãy sử dụng ngay!
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sessionId = "{{ session_id }}";
+            const statusMessage = document.getElementById('statusMessage');
+            const transferModal = new bootstrap.Modal(document.getElementById('transferModal'));
+            
+            // Hiển thị thông báo
+            function showMessage(message, type = 'success') {
+                statusMessage.textContent = message;
+                statusMessage.className = `alert alert-${type}`;
+                statusMessage.classList.remove('d-none');
+                setTimeout(() => {
+                    statusMessage.classList.add('d-none');
+                }, 5000);
+            }
+            
+            // Xử lý cập nhật tài nguyên
+            document.querySelectorAll('[data-resource]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const resourceType = this.getAttribute('data-resource');
+                    const valueInput = document.getElementById(resourceType === 'cat_food' ? 'catFood' : 
+                                       resourceType === 'rare_tickets' ? 'rareTickets' : 
+                                       resourceType === 'platinum_tickets' ? 'platinumTickets' : 'xp');
+                    
+                    const value = valueInput.value;
+                    
+                    // Gửi yêu cầu cập nhật
+                    fetch(`/edit/${resourceType}/${sessionId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `value=${value}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            showMessage(data.message);
+                        } else {
+                            showMessage(data.message, 'danger');
+                        }
+                    })
+                    .catch(error => {
+                        showMessage('Lỗi khi cập nhật: ' + error, 'danger');
+                    });
+                });
+            });
+            
+            // Xử lý thêm mèo
+            const catRangeStart = document.getElementById('catRangeStart');
+            const catRangeEnd = document.getElementById('catRangeEnd');
+            const specificCatIds = document.getElementById('specificCatIds');
+            const selectedCatIds = document.getElementById('selectedCatIds');
+            const addCatsButton = document.getElementById('addCatsButton');
+            
+            function updateSelectedCats() {
+                const cats = [];
+                
+                // Thêm từ phạm vi
+                if (catRangeStart.value && catRangeEnd.value) {
+                    const start = parseInt(catRangeStart.value);
+                    const end = parseInt(catRangeEnd.value);
+                    if (!isNaN(start) && !isNaN(end) && start <= end) {
+                        for (let i = start; i <= end; i++) {
+                            if (!cats.includes(i)) {
+                                cats.push(i);
+                            }
+                        }
+                    }
+                }
+                
+                // Thêm từ danh sách cụ thể
+                if (specificCatIds.value) {
+                    specificCatIds.value.split(',').forEach(id => {
+                        const catId = parseInt(id.trim());
+                        if (!isNaN(catId) && !cats.includes(catId)) {
+                            cats.push(catId);
+                        }
+                    });
+                }
+                
+                // Hiển thị danh sách
+                if (cats.length > 0) {
+                    selectedCatIds.innerHTML = '';
+                    cats.sort((a, b) => a - b).forEach(id => {
+                        const chip = document.createElement('span');
+                        chip.className = 'cat-id-chip';
+                        chip.textContent = id;
+                        selectedCatIds.appendChild(chip);
+                    });
+                    addCatsButton.disabled = false;
+                } else {
+                    selectedCatIds.innerHTML = '<div class="text-muted text-center">Chưa có mèo nào được chọn</div>';
+                    addCatsButton.disabled = true;
+                }
+                
+                return cats;
+            }
+            
+            catRangeStart.addEventListener('input', updateSelectedCats);
+            catRangeEnd.addEventListener('input', updateSelectedCats);
+            specificCatIds.addEventListener('input', updateSelectedCats);
+            
+            addCatsButton.addEventListener('click', function() {
+                const cats = updateSelectedCats();
+                
+                if (cats.length > 0) {
+                    fetch(`/edit/get_cats/${sessionId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `cat_ids=${cats.join(',')}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            showMessage(data.message);
+                        } else {
+                            showMessage(data.message, 'danger');
+                        }
+                    })
+                    .catch(error => {
+                        showMessage('Lỗi khi thêm mèo: ' + error, 'danger');
+                    });
+                }
+            });
+            
+            // Xử lý nâng cấp và tiến hóa mèo
+            const upgradeCatRangeStart = document.getElementById('upgradeCatRangeStart');
+            const upgradeCatRangeEnd = document.getElementById('upgradeCatRangeEnd');
+            const upgradeSpecificCatIds = document.getElementById('upgradeSpecificCatIds');
+            const selectedUpgradeCatIds = document.getElementById('selectedUpgradeCatIds');
+            const upgradeCatsButton = document.getElementById('upgradeCatsButton');
+            const evolveCatsButton = document.getElementById('evolveCatsButton');
+            
+            function updateSelectedUpgradeCats() {
+                const cats = [];
+                
+                // Thêm từ phạm vi
+                if (upgradeCatRangeStart.value && upgradeCatRangeEnd.value) {
+                    const start = parseInt(upgradeCatRangeStart.value);
+                    const end = parseInt(upgradeCatRangeEnd.value);
+                    if (!isNaN(start) && !isNaN(end) && start <= end) {
+                        for (let i = start; i <= end; i++) {
+                            if (!cats.includes(i)) {
+                                cats.push(i);
+                            }
+                        }
+                    }
+                }
+                
+                // Thêm từ danh sách cụ thể
+                if (upgradeSpecificCatIds.value) {
+                    upgradeSpecificCatIds.value.split(',').forEach(id => {
+                        const catId = parseInt(id.trim());
+                        if (!isNaN(catId) && !cats.includes(catId)) {
+                            cats.push(catId);
+                        }
+                    });
+                }
+                
+                // Hiển thị danh sách
+                if (cats.length > 0) {
+                    selectedUpgradeCatIds.innerHTML = '';
+                    cats.sort((a, b) => a - b).forEach(id => {
+                        const chip = document.createElement('span');
+                        chip.className = 'cat-id-chip';
+                        chip.textContent = id;
+                        selectedUpgradeCatIds.appendChild(chip);
+                    });
+                    upgradeCatsButton.disabled = false;
+                    evolveCatsButton.disabled = false;
+                } else {
+                    selectedUpgradeCatIds.innerHTML = '<div class="text-muted text-center">Chưa có mèo nào được chọn</div>';
+                    upgradeCatsButton.disabled = true;
+                    evolveCatsButton.disabled = true;
+                }
+                
+                return cats;
+            }
+            
+            upgradeCatRangeStart.addEventListener('input', updateSelectedUpgradeCats);
+            upgradeCatRangeEnd.addEventListener('input', updateSelectedUpgradeCats);
+            upgradeSpecificCatIds.addEventListener('input', updateSelectedUpgradeCats);
+            
+            upgradeCatsButton.addEventListener('click', function() {
+                const cats = updateSelectedUpgradeCats();
+                const baseLevel = document.getElementById('baseLevel').value;
+                const plusLevel = document.getElementById('plusLevel').value;
+                
+                if (cats.length > 0) {
+                    fetch(`/edit/upgrade_cats/${sessionId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `cat_ids=${cats.join(',')}&base_level=${baseLevel}&plus_level=${plusLevel}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            showMessage(data.message);
+                        } else {
+                            showMessage(data.message, 'danger');
+                        }
+                    })
+                    .catch(error => {
+                        showMessage('Lỗi khi nâng cấp mèo: ' + error, 'danger');
+                    });
+                }
+            });
+
+            evolveCatsButton.addEventListener('click', function() {
+                const cats = updateSelectedUpgradeCats();
+                
+                if (cats.length > 0) {
+                    fetch(`/edit/evolve_cats/${sessionId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `cat_ids=${cats.join(',')}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            showMessage(data.message);
+                        } else {
+                            showMessage(data.message, 'danger');
+                        }
+                    })
+                    .catch(error => {
+                        showMessage('Lỗi khi tiến hóa mèo: ' + error, 'danger');
+                    });
+                }
+            });
+
+            // Xử lý hoàn thành hướng dẫn
+            document.getElementById('clearTutorialButton').addEventListener('click', function() {
+                fetch(`/edit/clear_tutorial/${sessionId}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showMessage(data.message);
+                    } else {
+                        showMessage(data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    showMessage('Lỗi khi hoàn thành hướng dẫn: ' + error, 'danger');
+                });
+            });
+
+            // Xử lý lấy mã chuyển giao
+            document.getElementById('getTransferButton').addEventListener('click', function() {
+                fetch(`/edit/upload_save/${sessionId}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Hiển thị modal với mã chuyển giao
+                        document.getElementById('transferCode').textContent = data.transfer_code;
+                        document.getElementById('confirmationCode').textContent = data.confirmation_code;
+                        transferModal.show();
+                    } else {
+                        showMessage(data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    showMessage('Lỗi khi lấy mã chuyển giao: ' + error, 'danger');
+                });
+            });
+            
+            // Xử lý tự động gửi mã chuyển giao
+            // Xử lý tự động gửi mã chuyển giao
+document.getElementById('autoTransferButton').addEventListener('click', function() {
+    this.disabled = true;
+    this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
+    
+    // Gọi API để upload save và lấy mã chuyển giao mới
+    fetch(`/edit/upload_save/${sessionId}`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Hiển thị thông báo thành công
+            showMessage(`Đã tạo mã chuyển giao mới và tự động hoàn tất quy trình: ${data.transfer_code} / ${data.confirmation_code}`);
+            
+            // Hiển thị mã trong modal
+            document.getElementById('transferCode').textContent = data.transfer_code;
+            document.getElementById('confirmationCode').textContent = data.confirmation_code;
+            
+            // Xóa thông báo cũ nếu có
+            const oldNotices = document.querySelectorAll('.modal-body .alert');
+            oldNotices.forEach(notice => notice.remove());
+            
+            
+            // Mô phỏng việc đã tự động hoàn tất toàn bộ quá trình
+            const processCompleteNotice = document.createElement('div');
+            processCompleteNotice.className = 'alert alert-info mt-2';
+            processCompleteNotice.innerHTML = '<strong>Đã hoàn tất:</strong> Quá trình chuyển giao dữ liệu đã hoàn thành tự động. Bạn có thể vào game ngay bây giờ.';
+            document.querySelector('.modal-body').appendChild(processCompleteNotice);
+            
+            transferModal.show();
+        } else {
+            showMessage(data.message, 'danger');
+        }
+        
+        this.disabled = false;
+        this.innerHTML = '<i class="bi bi-arrow-repeat"></i> Tự động gửi mã';
+    })
+    .catch(error => {
+        showMessage('Lỗi khi tạo mã chuyển giao: ' + error, 'danger');
+        this.disabled = false;
+        this.innerHTML = '<i class="bi bi-arrow-repeat"></i> Tự động gửi mã';
+    });
+});
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+D:\Freelancers\Test api\Test api\bin\Debug\net7.0\appsettings.Development.json
+D:\Freelancers\Test api\Test api\bin\Debug\net7.0\appsettings.json
+D:\Freelancers\Test api\Test api\bin\Debug\net7.0\Test api.staticwebassets.endpoints.json
+D:\Freelancers\Test api\Test api\bin\Debug\net7.0\Test api.exe
+D:\Freelancers\Test api\Test api\bin\Debug\net7.0\Test api.deps.json
+D:\Freelancers\Test api\Test api\bin\Debug\net7.0\Test api.runtimeconfig.json
+D:\Freelancers\Test api\Test api\bin\Debug\net7.0\Test api.dll
+D:\Freelancers\Test api\Test api\bin\Debug\net7.0\Test api.pdb
+D:\Freelancers\Test api\Test api\bin\Debug\net7.0\Microsoft.AspNetCore.OpenApi.dll
+D:\Freelancers\Test api\Test api\bin\Debug\net7.0\Microsoft.OpenApi.dll
+D:\Freelancers\Test api\Test api\bin\Debug\net7.0\Swashbuckle.AspNetCore.Swagger.dll
+D:\Freelancers\Test api\Test api\bin\Debug\net7.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+D:\Freelancers\Test api\Test api\bin\Debug\net7.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\Test api.csproj.AssemblyReference.cache
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\Test api.GeneratedMSBuildEditorConfig.editorconfig
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\Test api.AssemblyInfoInputs.cache
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\Test api.AssemblyInfo.cs
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\Test api.csproj.CoreCompileInputs.cache
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\Test api.MvcApplicationPartsAssemblyInfo.cs
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\Test api.MvcApplicationPartsAssemblyInfo.cache
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\scopedcss\bundle\Test api.styles.css
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\staticwebassets.build.json
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\staticwebassets.development.json
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\staticwebassets.build.endpoints.json
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\staticwebassets\msbuild.Test api.Microsoft.AspNetCore.StaticWebAssets.props
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\staticwebassets\msbuild.Test api.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\staticwebassets\msbuild.build.Test api.props
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\staticwebassets\msbuild.buildMultiTargeting.Test api.props
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\staticwebassets\msbuild.buildTransitive.Test api.props
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\staticwebassets.pack.json
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\staticwebassets.upToDateCheck.txt
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\Test api.csproj.Up2Date
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\Test api.dll
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\refint\Test api.dll
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\Test api.pdb
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\Test api.genruntimeconfig.cache
+D:\Freelancers\Test api\Test api\obj\Debug\net7.0\ref\Test api.dll
+D:\Freelancers\Test api\Test api\bin\Debug\net7.0\Newtonsoft.Json.dll

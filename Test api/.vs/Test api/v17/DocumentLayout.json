@@ -1,0 +1,126 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Freelancers\\Test api\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{EE06EFB2-8DB6-43F3-8B82-F18E3FC35DF6}|Test api\\Test api.csproj|d:\\freelancers\\test api\\test api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EE06EFB2-8DB6-43F3-8B82-F18E3FC35DF6}|Test api\\Test api.csproj|solutionrelative:test api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE06EFB2-8DB6-43F3-8B82-F18E3FC35DF6}|Test api\\Test api.csproj|d:\\freelancers\\test api\\test api\\models\\battlecatsautotransferresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EE06EFB2-8DB6-43F3-8B82-F18E3FC35DF6}|Test api\\Test api.csproj|solutionrelative:test api\\models\\battlecatsautotransferresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE06EFB2-8DB6-43F3-8B82-F18E3FC35DF6}|Test api\\Test api.csproj|d:\\freelancers\\test api\\test api\\models\\battlecatsautotransferrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EE06EFB2-8DB6-43F3-8B82-F18E3FC35DF6}|Test api\\Test api.csproj|solutionrelative:test api\\models\\battlecatsautotransferrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE06EFB2-8DB6-43F3-8B82-F18E3FC35DF6}|Test api\\Test api.csproj|d:\\freelancers\\test api\\test api\\controllers\\battlecatsapicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EE06EFB2-8DB6-43F3-8B82-F18E3FC35DF6}|Test api\\Test api.csproj|solutionrelative:test api\\controllers\\battlecatsapicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE06EFB2-8DB6-43F3-8B82-F18E3FC35DF6}|Test api\\Test api.csproj|d:\\freelancers\\test api\\test api\\test api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{EE06EFB2-8DB6-43F3-8B82-F18E3FC35DF6}|Test api\\Test api.csproj|solutionrelative:test api\\test api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{EE06EFB2-8DB6-43F3-8B82-F18E3FC35DF6}|Test api\\Test api.csproj|d:\\freelancers\\test api\\test api\\controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EE06EFB2-8DB6-43F3-8B82-F18E3FC35DF6}|Test api\\Test api.csproj|solutionrelative:test api\\controllers\\weatherforecastcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "BattleCatsAutoTransferResponse.cs",
+              "DocumentMoniker": "D:\\Freelancers\\Test api\\Test api\\Models\\BattleCatsAutoTransferResponse.cs",
+              "RelativeDocumentMoniker": "Test api\\Models\\BattleCatsAutoTransferResponse.cs",
+              "ToolTip": "D:\\Freelancers\\Test api\\Test api\\Models\\BattleCatsAutoTransferResponse.cs",
+              "RelativeToolTip": "Test api\\Models\\BattleCatsAutoTransferResponse.cs",
+              "ViewState": "AgIAABwAAAAAAAAAAAAzwCgAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-16T14:04:12.948Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "BattleCatsAutoTransferRequest.cs",
+              "DocumentMoniker": "D:\\Freelancers\\Test api\\Test api\\Models\\BattleCatsAutoTransferRequest.cs",
+              "RelativeDocumentMoniker": "Test api\\Models\\BattleCatsAutoTransferRequest.cs",
+              "ToolTip": "D:\\Freelancers\\Test api\\Test api\\Models\\BattleCatsAutoTransferRequest.cs",
+              "RelativeToolTip": "Test api\\Models\\BattleCatsAutoTransferRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-16T14:03:48.866Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Freelancers\\Test api\\Test api\\Program.cs",
+              "RelativeDocumentMoniker": "Test api\\Program.cs",
+              "ToolTip": "D:\\Freelancers\\Test api\\Test api\\Program.cs",
+              "RelativeToolTip": "Test api\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-16T13:36:41.441Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Test api",
+              "DocumentMoniker": "D:\\Freelancers\\Test api\\Test api\\Test api.csproj",
+              "RelativeDocumentMoniker": "Test api\\Test api.csproj",
+              "ToolTip": "D:\\Freelancers\\Test api\\Test api\\Test api.csproj",
+              "RelativeToolTip": "Test api\\Test api.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-03-16T13:34:34.193Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "BattleCatsApiController.cs",
+              "DocumentMoniker": "D:\\Freelancers\\Test api\\Test api\\Controllers\\BattleCatsApiController.cs",
+              "RelativeDocumentMoniker": "Test api\\Controllers\\BattleCatsApiController.cs",
+              "ToolTip": "D:\\Freelancers\\Test api\\Test api\\Controllers\\BattleCatsApiController.cs",
+              "RelativeToolTip": "Test api\\Controllers\\BattleCatsApiController.cs",
+              "ViewState": "AgIAAGEAAAAAAAAAAAAiwKYAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-16T13:33:43.954Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "WeatherForecastController.cs",
+              "DocumentMoniker": "D:\\Freelancers\\Test api\\Test api\\Controllers\\WeatherForecastController.cs",
+              "RelativeDocumentMoniker": "Test api\\Controllers\\WeatherForecastController.cs",
+              "ToolTip": "D:\\Freelancers\\Test api\\Test api\\Controllers\\WeatherForecastController.cs",
+              "RelativeToolTip": "Test api\\Controllers\\WeatherForecastController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-16T13:33:13.661Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
