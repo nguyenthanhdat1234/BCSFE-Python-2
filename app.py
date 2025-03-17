@@ -452,4 +452,4 @@ def auto_transfer():
         return jsonify({'status': 'error', 'message': f'Lỗi khi xử lý: {str(e)}'})
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
