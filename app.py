@@ -60,14 +60,23 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/api/auto_transfer', methods=['POST'])
 def auto_transfer():
-    """Tự động tải xuống từ mã hiện tại, chỉnh sửa và tạo mã mới"""
+    """Tự động tải xuống từ mã hiện tại, chỉnh sửa và tạo mã mới với inquiry code mới"""
     try:
+        # Import cần thiết
+        import datetime
+        import json
+        import requests
+        
         # Lấy dữ liệu đầu vào
         transfer_code = request.form.get('transfer_code', '')
         confirmation_code = request.form.get('confirmation_code', '')
         country_code = request.form.get('country_code', 'en')
         game_version = request.form.get('game_version', '11.3.0')
         cat_food = request.form.get('cat_food', None)
+        change_inquiry = request.form.get('change_inquiry', 'true').lower() == 'true'
+        security_code = request.form.get('security_code', '1')  # Mặc định là 1
+        
+        print(f"[INFO] Bắt đầu auto_transfer với transfer_code={transfer_code}, confirmation_code={confirmation_code}")
         
         # Kiểm tra đầu vào
         if not transfer_code or not confirmation_code:
@@ -90,16 +99,19 @@ def auto_transfer():
         if not server_handler.test_is_save_data(save_data):
             return jsonify({'status': 'error', 'message': 'Mã chuyển giao/xác nhận không đúng hoặc không tìm thấy dữ liệu'})
         
-        # Lưu file tạm thời
-        download_path = os.path.join(app.config['UPLOAD_FOLDER'], f'auto_save_{transfer_code}')
+        # Sử dụng một tên file cố định để thay thế file cũ
+        download_path = os.path.join(app.config['UPLOAD_FOLDER'], 'current_save_file.sav')
         helper.write_file_bytes(download_path, save_data)
+        print(f"[INFO] Đã tải xuống và lưu file tại: {download_path} (thay thế nếu tồn tại)")
         
         # Phân tích file save
         save_stats = parse_save.start_parse(save_data, country_code)
         headers = response.headers
         save_stats['token'] = headers.get('nyanko-password-refresh-token', '')
+        original_inquiry = save_stats['inquiry_code']
+        print(f"[INFO] Original inquiry code: {original_inquiry}")
         
-        # Bước 2: Chỉnh sửa dữ liệu (ví dụ: Cat Food)
+        # Bước 2: Chỉnh sửa dữ liệu (Cat Food) - Chọn 2 > 2 > y
         original_values = {
             'cat_food': save_stats['cat_food']['Value'],
             'xp': save_stats['xp']['Value'],
@@ -107,18 +119,115 @@ def auto_transfer():
             'platinum_tickets': save_stats['platinum_tickets']['Value']
         }
         
-        if cat_food is not None:
-            save_stats['cat_food']['Value'] = int(cat_food)
+        # Xử lý cat food theo security code nếu không có giá trị cụ thể
+        if cat_food is None:
+            # Chọn giá trị cat food dựa trên security code
+            if security_code == '1':
+                cat_food = 19999
+            elif security_code == '2':
+                cat_food = 18000
+            elif security_code == '3':
+                cat_food = 2000
+            else:
+                cat_food = 19999  # Mặc định nếu không rõ security code
         
-        # Bước 3: Tải lên để lấy mã mới
-        upload_data = server_handler.upload_handler(save_stats, download_path)
+        save_stats['cat_food']['Value'] = int(cat_food)
+        print(f"[INFO] Đã thay đổi cat food thành: {save_stats['cat_food']['Value']}")
+        
+        # Bước 3: Thay đổi inquiry code nếu cần (Chọn 6 > 2)
+        new_inquiry = original_inquiry
+        inquiry_changed = False
+        
+        if change_inquiry:
+            try:
+                # Lấy inquiry code mới từ API
+                print("[INFO] Đang lấy inquiry code mới từ API...")
+                api_url = 'https://nyanko-backups.ponosgames.com/?action=createAccount&referenceId='
+                response = requests.get(api_url)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    new_inquiry = data.get('accountId', '')
+                    
+                    if new_inquiry:
+                        print(f"[INFO] Đã lấy inquiry code mới: {new_inquiry}")
+                        # Thay đổi inquiry code (Chọn 6 > 2)
+                        save_stats['inquiry_code'] = new_inquiry
+                        # Reset token vì inquiry code đã thay đổi
+                        save_stats['token'] = "0" * 40
+                        print(f"[INFO] Đã thay đổi inquiry code từ {original_inquiry} thành {new_inquiry}")
+                        inquiry_changed = True
+                    else:
+                        print("[INFO] Không thể lấy inquiry code mới từ API (accountId trống)")
+                else:
+                    print(f"[INFO] Lỗi khi truy cập API: {response.status_code}")
+            except Exception as e:
+                import traceback
+                print(f"[INFO] Lỗi khi thay đổi inquiry code: {str(e)}")
+                print(traceback.format_exc())
+        
+        # Cập nhật lại dữ liệu save file sau khi thay đổi
+        print("[INFO] Đang cập nhật lại dữ liệu save file...")
+        try:
+            from BCSFE_Python import serialise_save
+            modified_save_data = serialise_save.start_serialize(save_stats)
+        except ImportError:
+            print("[INFO] Không thể import serialise_save trực tiếp, thử import từ helper...")
+            modified_save_data = helper.serialise_save.start_serialize(save_stats)
+            
+        # Sử dụng file cố định cho dữ liệu đã chỉnh sửa, thay thế nếu tồn tại
+        modified_download_path = os.path.join(app.config['UPLOAD_FOLDER'], 'modified_save_file.sav')
+        helper.write_file_bytes(modified_download_path, modified_save_data)
+        print(f"[INFO] Đã lưu file đã chỉnh sửa tại: {modified_download_path} (thay thế nếu tồn tại)")
+        
+        # Bước 4: Upload để lấy mã mới (Chọn 1 > 3 > Enter)
+        print("[INFO] Đang upload save data để lấy mã mới...")
+        upload_data = server_handler.upload_handler(save_stats, modified_download_path)
+        
         if upload_data is None:
-            return jsonify({'status': 'error', 'message': 'Không thể tải lên máy chủ'})
+            print("[INFO] upload_handler trả về None")
+            return jsonify({
+                'status': 'error', 
+                'message': 'Không thể tải lên máy chủ',
+                'debug_info': {
+                    'original_inquiry': original_inquiry,
+                    'new_inquiry': new_inquiry,
+                    'token_reset': save_stats['token'] == "0" * 40,
+                    'cat_food_value': save_stats['cat_food']['Value'],
+                    'download_path_exists': os.path.exists(modified_download_path),
+                    'download_path_size': os.path.getsize(modified_download_path) if os.path.exists(modified_download_path) else 0
+                }
+            })
         
-        upload_data, save_stats = upload_data
+        upload_data, updated_save_stats = upload_data
+        print(f"[INFO] Upload thành công, đã nhận được dữ liệu mới")
+        
         if upload_data is None or 'transferCode' not in upload_data:
+            print("[INFO] Không tìm thấy transferCode trong dữ liệu upload")
             return jsonify({'status': 'error', 'message': 'Không nhận được mã chuyển giao mới'})
         
+        # Kiểm tra lại inquiry code sau khi upload
+        final_inquiry = updated_save_stats['inquiry_code']
+        print(f"[INFO] Inquiry code sau khi upload: {final_inquiry}")
+        
+        # Lưu lại kết quả upload cuối cùng vào file
+        result_info = {
+            'transfer_code': upload_data['transferCode'],
+            'confirmation_code': upload_data['pin'],
+            'original_inquiry': original_inquiry,
+            'final_inquiry': final_inquiry,
+            'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+        # Lưu thông tin kết quả vào file
+        try:
+            result_path = os.path.join(app.config['UPLOAD_FOLDER'], 'latest_transfer_result.json')
+            with open(result_path, 'w') as f:
+                json.dump(result_info, f, indent=2)
+            print(f"[INFO] Đã lưu thông tin kết quả vào {result_path}")
+        except Exception as e:
+            print(f"[INFO] Không thể lưu thông tin kết quả: {str(e)}")
+            
         # Trả về kết quả
         result = {
             'status': 'success',
@@ -129,18 +238,25 @@ def auto_transfer():
             'new_confirmation_code': upload_data['pin'],
             'original_values': original_values,
             'modified_values': {
-                'cat_food': save_stats['cat_food']['Value'],
-                'xp': save_stats['xp']['Value'],
-                'rare_tickets': save_stats['rare_tickets']['Value'],
-                'platinum_tickets': save_stats['platinum_tickets']['Value']
+                'cat_food': updated_save_stats['cat_food']['Value'],
+                'xp': updated_save_stats['xp']['Value'],
+                'rare_tickets': updated_save_stats['rare_tickets']['Value'],
+                'platinum_tickets': updated_save_stats['platinum_tickets']['Value']
             },
-            'inquiry_code': save_stats['inquiry_code']
+            'original_inquiry': original_inquiry,
+            'new_inquiry': final_inquiry,
+            'inquiry_changed': original_inquiry != final_inquiry
         }
         
+        print(f"[INFO] Hoàn thành auto_transfer: {result['status']}")
         return jsonify(result)
         
     except Exception as e:
-        return jsonify({'status': 'error', 'message': f'Lỗi khi xử lý: {str(e)}'})
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"[INFO] Lỗi trong auto_transfer: {str(e)}")
+        print(error_trace)
+        return jsonify({'status': 'error', 'message': f'Lỗi khi xử lý: {str(e)}', 'trace': error_trace})
 
 @app.route('/')
 def index():
