@@ -1,6 +1,6 @@
 import os
 import tempfile
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 import sys
 from flask_cors import CORS
 
@@ -26,7 +26,8 @@ ALLOWED_ORIGINS = [
     'https://example.com',
     'http://localhost:5000',
     'http://127.0.0.1:5000',
-    'https://bcsfe-web-app.onrender.com'
+    'https://bcsfe-web-app.onrender.com',
+    'http://localhost:54216'  # Thêm localhost của TheBattleCats
 ]
 
 # Áp dụng CORS với các domain được chỉ định
@@ -57,6 +58,33 @@ def check_origin():
 UPLOAD_FOLDER = os.path.join(tempfile.gettempdir(), 'bcsfe_uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# API mới để tải xuống file save data
+@app.route('/api/download_save_data/<security_code>', methods=['GET'])
+def download_save_data(security_code):
+    try:
+        # Đường dẫn tới file save data đã chỉnh sửa
+        modified_save_path = os.path.join(app.config['UPLOAD_FOLDER'], 'modified_save_file.sav')
+        
+        if not os.path.exists(modified_save_path):
+            return jsonify({'status': 'error', 'message': 'Không tìm thấy file save data'}), 404
+        
+        # Đổi tên file theo security code
+        return send_file(
+            modified_save_path,
+            as_attachment=True,
+            download_name=f'{security_code}_SAVE_DATA.sav',
+            mimetype='application/octet-stream'
+        )
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] Lỗi khi tải xuống file save data: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({
+            'status': 'error', 
+            'message': f'Lỗi khi tải file: {str(e)}',
+            'traceback': traceback.format_exc()
+        }), 500
 
 @app.route('/api/auto_transfer', methods=['POST'])
 def auto_transfer():
@@ -216,6 +244,7 @@ def auto_transfer():
             'confirmation_code': upload_data['pin'],
             'original_inquiry': original_inquiry,
             'final_inquiry': final_inquiry,
+            'security_code': security_code,  # Lưu security code vào kết quả
             'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
         
@@ -245,7 +274,9 @@ def auto_transfer():
             },
             'original_inquiry': original_inquiry,
             'new_inquiry': final_inquiry,
-            'inquiry_changed': original_inquiry != final_inquiry
+            'inquiry_changed': original_inquiry != final_inquiry,
+            'security_code': security_code,  # Thêm security code vào kết quả
+            'save_data_url': f'/api/download_save_data/{security_code}'  # Thêm URL để tải xuống file save data
         }
         
         print(f"[INFO] Hoàn thành auto_transfer: {result['status']}")
