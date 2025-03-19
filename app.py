@@ -3,6 +3,9 @@ import tempfile
 from flask import Flask, request, jsonify, send_file
 import sys
 from flask_cors import CORS
+import threading
+import uuid
+import time
 
 # Thêm đường dẫn để tìm BCSFE_Python
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -19,6 +22,10 @@ except ImportError as e:
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+
+# Tạo mutex cho các hoạt động truy cập file
+file_mutex = threading.Lock()
+result_mutex = threading.Lock()
 
 # Thiết lập CORS để chỉ cho phép các domain được chấp nhận
 ALLOWED_ORIGINS = [
@@ -59,23 +66,45 @@ UPLOAD_FOLDER = os.path.join(tempfile.gettempdir(), 'bcsfe_uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# API mới để tải xuống file save data
+# API để tải xuống file save data
 @app.route('/api/download_save_data/<security_code>', methods=['GET'])
 def download_save_data(security_code):
     try:
         # Đường dẫn tới file save data đã chỉnh sửa
         modified_save_path = os.path.join(app.config['UPLOAD_FOLDER'], 'modified_save_file.sav')
         
+        # Kiểm tra xem file có tồn tại không
         if not os.path.exists(modified_save_path):
             return jsonify({'status': 'error', 'message': 'Không tìm thấy file save data'}), 404
         
-        # Đổi tên file theo security code
-        return send_file(
-            modified_save_path,
+        # Sử dụng mutex để đảm bảo không có ai đang ghi vào file
+        with file_mutex:
+            # Tạo bản sao tạm thời của file để tránh conflict khi tải xuống
+            temp_file_path = os.path.join(app.config['UPLOAD_FOLDER'], f'download_copy_{security_code}_{uuid.uuid4()}.sav')
+            with open(modified_save_path, 'rb') as src_file:
+                file_content = src_file.read()
+                with open(temp_file_path, 'wb') as dest_file:
+                    dest_file.write(file_content)
+        
+        # Gửi file đã sao chép
+        response = send_file(
+            temp_file_path,
             as_attachment=True,
             download_name=f'{security_code}_SAVE_DATA.sav',
             mimetype='application/octet-stream'
         )
+        
+        # Thiết lập callback để xóa file tạm thời sau khi gửi
+        @response.call_on_close
+        def cleanup():
+            try:
+                if os.path.exists(temp_file_path):
+                    os.remove(temp_file_path)
+            except Exception as e:
+                print(f"[WARNING] Không thể xóa file tạm thời: {str(e)}")
+        
+        return response
+        
     except Exception as e:
         import traceback
         print(f"[ERROR] Lỗi khi tải xuống file save data: {str(e)}")
@@ -88,7 +117,12 @@ def download_save_data(security_code):
 
 @app.route('/api/auto_transfer', methods=['POST'])
 def auto_transfer():
-    """Tự động tải xuống từ mã hiện tại, chỉnh sửa và tạo mã mới với inquiry code mới"""
+    # Tạo ID yêu cầu duy nhất
+    request_id = str(uuid.uuid4())
+    # Tạo đường dẫn file riêng cho yêu cầu này
+    current_save_file = os.path.join(app.config['UPLOAD_FOLDER'], f'current_save_{request_id}.sav')
+    modified_save_file = os.path.join(app.config['UPLOAD_FOLDER'], f'modified_save_{request_id}.sav')
+    
     try:
         # Import cần thiết
         import datetime
@@ -104,7 +138,7 @@ def auto_transfer():
         change_inquiry = request.form.get('change_inquiry', 'true').lower() == 'true'
         security_code = request.form.get('security_code', '1')  # Mặc định là 1
         
-        print(f"[INFO] Bắt đầu auto_transfer với transfer_code={transfer_code}, confirmation_code={confirmation_code}")
+        print(f"[INFO] Bắt đầu auto_transfer với transfer_code={transfer_code}, confirmation_code={confirmation_code}, request_id={request_id}")
         
         # Kiểm tra đầu vào
         if not transfer_code or not confirmation_code:
@@ -127,10 +161,9 @@ def auto_transfer():
         if not server_handler.test_is_save_data(save_data):
             return jsonify({'status': 'error', 'message': 'Mã chuyển giao/xác nhận không đúng hoặc không tìm thấy dữ liệu'})
         
-        # Sử dụng một tên file cố định để thay thế file cũ
-        download_path = os.path.join(app.config['UPLOAD_FOLDER'], 'current_save_file.sav')
-        helper.write_file_bytes(download_path, save_data)
-        print(f"[INFO] Đã tải xuống và lưu file tại: {download_path} (thay thế nếu tồn tại)")
+        # Sử dụng file riêng cho yêu cầu này
+        helper.write_file_bytes(current_save_file, save_data)
+        print(f"[INFO] Đã tải xuống và lưu file tại: {current_save_file}")
         
         # Phân tích file save
         save_stats = parse_save.start_parse(save_data, country_code)
@@ -203,14 +236,13 @@ def auto_transfer():
             print("[INFO] Không thể import serialise_save trực tiếp, thử import từ helper...")
             modified_save_data = helper.serialise_save.start_serialize(save_stats)
             
-        # Sử dụng file cố định cho dữ liệu đã chỉnh sửa, thay thế nếu tồn tại
-        modified_download_path = os.path.join(app.config['UPLOAD_FOLDER'], 'modified_save_file.sav')
-        helper.write_file_bytes(modified_download_path, modified_save_data)
-        print(f"[INFO] Đã lưu file đã chỉnh sửa tại: {modified_download_path} (thay thế nếu tồn tại)")
+        # Sử dụng file riêng cho dữ liệu đã chỉnh sửa
+        helper.write_file_bytes(modified_save_file, modified_save_data)
+        print(f"[INFO] Đã lưu file đã chỉnh sửa tại: {modified_save_file}")
         
         # Bước 4: Upload để lấy mã mới (Chọn 1 > 3 > Enter)
         print("[INFO] Đang upload save data để lấy mã mới...")
-        upload_data = server_handler.upload_handler(save_stats, modified_download_path)
+        upload_data = server_handler.upload_handler(save_stats, modified_save_file)
         
         if upload_data is None:
             print("[INFO] upload_handler trả về None")
@@ -222,8 +254,8 @@ def auto_transfer():
                     'new_inquiry': new_inquiry,
                     'token_reset': save_stats['token'] == "0" * 40,
                     'cat_food_value': save_stats['cat_food']['Value'],
-                    'download_path_exists': os.path.exists(modified_download_path),
-                    'download_path_size': os.path.getsize(modified_download_path) if os.path.exists(modified_download_path) else 0
+                    'download_path_exists': os.path.exists(modified_save_file),
+                    'download_path_size': os.path.getsize(modified_save_file) if os.path.exists(modified_save_file) else 0
                 }
             })
         
@@ -244,18 +276,28 @@ def auto_transfer():
             'confirmation_code': upload_data['pin'],
             'original_inquiry': original_inquiry,
             'final_inquiry': final_inquiry,
-            'security_code': security_code,  # Lưu security code vào kết quả
+            'security_code': security_code,
             'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
         
-        # Lưu thông tin kết quả vào file
+        # Lưu thông tin kết quả vào file với mutex
         try:
-            result_path = os.path.join(app.config['UPLOAD_FOLDER'], 'latest_transfer_result.json')
-            with open(result_path, 'w') as f:
-                json.dump(result_info, f, indent=2)
-            print(f"[INFO] Đã lưu thông tin kết quả vào {result_path}")
+            with result_mutex:
+                result_path = os.path.join(app.config['UPLOAD_FOLDER'], 'latest_transfer_result.json')
+                with open(result_path, 'w') as f:
+                    json.dump(result_info, f, indent=2)
+                print(f"[INFO] Đã lưu thông tin kết quả vào {result_path}")
         except Exception as e:
             print(f"[INFO] Không thể lưu thông tin kết quả: {str(e)}")
+        
+        # Cập nhật file save data cho API download với mutex
+        with file_mutex:
+            shared_modified_path = os.path.join(app.config['UPLOAD_FOLDER'], 'modified_save_file.sav')
+            with open(modified_save_file, 'rb') as src_file:
+                file_content = src_file.read()
+                with open(shared_modified_path, 'wb') as dest_file:
+                    dest_file.write(file_content)
+            print(f"[INFO] Đã cập nhật file save data được chia sẻ tại: {shared_modified_path}")
             
         # Trả về kết quả
         result = {
@@ -275,8 +317,8 @@ def auto_transfer():
             'original_inquiry': original_inquiry,
             'new_inquiry': final_inquiry,
             'inquiry_changed': original_inquiry != final_inquiry,
-            'security_code': security_code,  # Thêm security code vào kết quả
-            'save_data_url': f'/api/download_save_data/{security_code}'  # Thêm URL để tải xuống file save data
+            'security_code': security_code,
+            'save_data_url': f'/api/download_save_data/{security_code}'
         }
         
         print(f"[INFO] Hoàn thành auto_transfer: {result['status']}")
@@ -288,6 +330,16 @@ def auto_transfer():
         print(f"[INFO] Lỗi trong auto_transfer: {str(e)}")
         print(error_trace)
         return jsonify({'status': 'error', 'message': f'Lỗi khi xử lý: {str(e)}', 'trace': error_trace})
+    finally:
+        # Dọn dẹp các file tạm thời
+        try:
+            if os.path.exists(current_save_file):
+                os.remove(current_save_file)
+            if os.path.exists(modified_save_file):
+                os.remove(modified_save_file)
+            print(f"[INFO] Đã dọn dẹp các file tạm thời cho request_id={request_id}")
+        except Exception as cleanup_error:
+            print(f"[WARNING] Không thể dọn dẹp file tạm: {str(cleanup_error)}")
 
 @app.route('/')
 def index():
@@ -303,7 +355,8 @@ def test():
             'message': 'Hệ thống hoạt động bình thường',
             'import_status': 'Đã import BCSFE_Python thành công',
             'upload_folder': app.config['UPLOAD_FOLDER'],
-            'upload_folder_exists': os.path.exists(app.config['UPLOAD_FOLDER'])
+            'upload_folder_exists': os.path.exists(app.config['UPLOAD_FOLDER']),
+            'threading_enabled': True
         })
     except Exception as e:
         return jsonify({
@@ -312,4 +365,12 @@ def test():
         })
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Chạy Flask với threading và số lượng luồng tối đa là 10
+    import werkzeug.serving
+    from werkzeug.serving import WSGIRequestHandler
+    
+    # Tăng thời gian timeout cho các kết nối
+    WSGIRequestHandler.protocol_version = "HTTP/1.1"
+    
+    print("[INFO] Khởi động server với threading được bật...")
+    app.run(debug=True, threaded=True, host='0.0.0.0', port=5000)
