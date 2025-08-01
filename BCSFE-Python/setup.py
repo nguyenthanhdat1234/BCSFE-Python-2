@@ -1,17 +1,12 @@
 """Setup for installing the package."""
 
 import setuptools
-import os
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-# Handle version file safely
-version = "1.0.0"  # Default version
-version_file = "src/BCSFE_Python/files/version.txt"
-if os.path.exists(version_file):
-    with open(version_file, "r", encoding="utf-8") as fh:
-        version = fh.read().strip()
+with open("src/BCSFE_Python/files/version.txt", "r", encoding="utf-8") as fh:
+    version = fh.read()
 
 setuptools.setup(
     name="battle-cats-save-editor",
@@ -31,6 +26,7 @@ setuptools.setup(
     python_requires=">=3.9",
     install_requires=[
         "colored==1.4.4",
+        "tk",
         "python-dateutil",
         "requests",
         "pyyaml",
@@ -42,15 +38,6 @@ setuptools.setup(
             "pytest-cov",
         ],
     },
-    package_data={
-        "BCSFE_Python": [
-            "py.typed",
-            "files/*",
-            "files/**/*",
-            "files/locales/*/*.properties",
-            "files/locales/*/*",
-        ]
-    },
-    # Add MANIFEST.in support
-    zip_safe=False,
+    package_data={"BCSFE_Python": ["py.typed"]},
+    flake8={"max-line-length": 160},
 )
