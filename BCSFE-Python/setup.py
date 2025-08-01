@@ -31,7 +31,6 @@ setuptools.setup(
     python_requires=">=3.9",
     install_requires=[
         "colored==1.4.4",
-        # "tk",  # Removed - tkinter is built-in
         "python-dateutil",
         "requests",
         "pyyaml",
@@ -46,8 +45,12 @@ setuptools.setup(
     package_data={
         "BCSFE_Python": [
             "py.typed",
-            "files/*",  # Include all files in the files directory
-            "files/**/*",  # Include subdirectories
+            "files/*",
+            "files/**/*",
+            "files/locales/*/*.properties",
+            "files/locales/*/*",
         ]
     },
+    # Add MANIFEST.in support
+    zip_safe=False,
 )

@@ -519,11 +519,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Freelancers\\Test api\\Test api\\Test api.csproj",
+      "projectUniqueName": "D:\\BattleCart\\BCSFE-Python-2\\Test api\\Test api\\Test api.csproj",
       "projectName": "Test api",
-      "projectPath": "D:\\Freelancers\\Test api\\Test api\\Test api.csproj",
+      "projectPath": "D:\\BattleCart\\BCSFE-Python-2\\Test api\\Test api\\Test api.csproj",
       "packagesPath": "C:\\Users\\ZBZBZB\\.nuget\\packages\\",
-      "outputPath": "D:\\Freelancers\\Test api\\Test api\\obj\\",
+      "outputPath": "D:\\BattleCart\\BCSFE-Python-2\\Test api\\Test api\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -557,7 +557,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.200"
+      "SdkAnalysisLevel": "9.0.300"
     },
     "frameworks": {
       "net7.0": {
@@ -595,7 +595,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.200\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302\\RuntimeIdentifierGraph.json"
       }
     }
   }
