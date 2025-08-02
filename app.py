@@ -6,19 +6,291 @@ from flask_cors import CORS
 import threading
 import uuid
 import time
+import traceback
 
 # Thêm đường dẫn để tìm BCSFE_Python
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'BCSFE-Python')))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'BCSFE-Python', 'src')))
 
+# Global variables for imported modules
+helper = None
+parse_save = None
+server_handler = None
+ServerHandler = None
+core = None
+
+# Try multiple import strategies
 try:
-    # Import các module cần thiết
-    from BCSFE_Python import helper, parse_save, server_handler
-    print("Tất cả các import thành công!")
-except ImportError as e:
-    print(f"Lỗi khi import BCSFE_Python: {e}")
-    sys.exit(1)
+    print("🔄 Trying import strategy 1: Modern BCSFE package...")
+    # Strategy 1: Modern BCSFE package (3.0.0b8)
+    import bcsfe
+    from bcsfe import core
+    from bcsfe.core.server import server_handler as sh
+    
+    # Initialize BCSFE if needed
+    try:
+        if hasattr(bcsfe, 'setup'):
+            bcsfe.setup()
+        elif hasattr(core, 'setup'):
+            core.setup()
+    except:
+        pass
+    
+    # Ensure core_data exists with all needed attributes
+    if not hasattr(core, 'core_data') or core.core_data is None:
+        print("🔧 Creating mock core_data...")
+        
+        class MockConfig:
+            def get_int(self, key):
+                if hasattr(key, 'value'):
+                    key_name = key.value
+                else:
+                    key_name = str(key)
+                if 'TIMEOUT' in key_name:
+                    return 30
+                return 10
+            
+            def get_str(self, key):
+                if hasattr(key, 'value'):
+                    key_name = key.value
+                else:
+                    key_name = str(key)
+                return ""
+            
+            def get_bool(self, key):
+                if hasattr(key, 'value'):
+                    key_name = key.value
+                else:
+                    key_name = str(key)
+                return False
+        
+        class MockLogger:
+            def log_error(self, text):
+                print(f"[ERROR] {text}")
+            def log_info(self, text):
+                print(f"[INFO] {text}")
+        
+        class MockLocalManager:
+            def __getattr__(self, name):
+                def flexible_method(*args, **kwargs):
+                    if name.startswith('get_') and ('path' in name or 'key' in name):
+                        return ""
+                    elif name.startswith('get_') and 'data' in name:
+                        return b""
+                    elif name.startswith('get_'):
+                        return ""
+                    return None
+                return flexible_method
+        
+        class MockCoreData:
+            def __init__(self):
+                self.config = MockConfig()
+                self.logger = MockLogger()
+                self.local_manager = MockLocalManager()
+                self.theme_manager = MockThemeManager()
+                
+            def __getattr__(self, name):
+                """Handle any missing attributes dynamically"""
+                print(f"[DEBUG] Missing core_data attribute: {name} - creating mock")
+                
+                class UniversalMock:
+                    def __getattr__(self, attr_name):
+                        def flexible_method(*args, **kwargs):
+                            print(f"[DEBUG] Mock {name}.{attr_name} called")
+                            if attr_name.startswith('get_'):
+                                return ""
+                            return None
+                        return flexible_method
+                
+                mock_obj = UniversalMock()
+                setattr(self, name, mock_obj)
+                return mock_obj
+        
+        class MockThemeManager:
+            def __getattr__(self, name):
+                def flexible_method(*args, **kwargs):
+                    if name.startswith('get_'):
+                        return ""
+                    return None
+                return flexible_method
+        
+        core.core_data = MockCoreData()
+        print("✅ Mock core_data created successfully!")
+    
+    # Additional check to ensure config exists
+    elif not hasattr(core.core_data, 'config') or core.core_data.config is None:
+        print("🔧 Adding missing config to existing core_data...")
+        
+        class MockConfig:
+            def get_int(self, key):
+                if hasattr(key, 'value'):
+                    key_name = key.value
+                else:
+                    key_name = str(key)
+                if 'TIMEOUT' in key_name:
+                    return 30
+                return 10
+            
+            def get_str(self, key):
+                return ""
+            
+            def get_bool(self, key):
+                return False
+        
+        core.core_data.config = MockConfig()
+        print("✅ Config added to existing core_data!")
+        
+    # Ensure local_manager exists
+    if not hasattr(core.core_data, 'local_manager') or core.core_data.local_manager is None:
+        print("🔧 Adding missing local_manager...")
+        
+        class MockLocalManager:
+            def __getattr__(self, name):
+                def flexible_method(*args, **kwargs):
+                    if name.startswith('get_') and ('path' in name or 'key' in name):
+                        return ""
+                    elif name.startswith('get_') and 'data' in name:
+                        return b""
+                    elif name.startswith('get_'):
+                        return ""
+                    return None
+                return flexible_method
+        
+        core.core_data.local_manager = MockLocalManager()
+        print("✅ Local manager added!")
+        
+    # Ensure logger exists  
+    if not hasattr(core.core_data, 'logger') or core.core_data.logger is None:
+        print("🔧 Adding missing logger...")
+        
+        class MockLogger:
+            def log_error(self, text):
+                print(f"[ERROR] {text}")
+            def log_info(self, text):
+                print(f"[INFO] {text}")
+        
+        core.core_data.logger = MockLogger()
+        print("✅ Logger added!")
+        
+    # Ensure theme_manager exists
+    if not hasattr(core.core_data, 'theme_manager') or core.core_data.theme_manager is None:
+        print("🔧 Adding missing theme_manager...")
+        
+        class MockThemeManager:
+            def __getattr__(self, name):
+                def flexible_method(*args, **kwargs):
+                    if name.startswith('get_'):
+                        return ""
+                    return None
+                return flexible_method
+        
+        core.core_data.theme_manager = MockThemeManager()
+        print("✅ Theme manager added!")
+    
+    ServerHandler = sh.ServerHandler
+    
+    # Modern BCSFE functions
+    def download_save_modern(country_code, transfer_code, confirmation_code, game_version):
+        try:
+            cc = core.CountryCode.from_code(country_code.upper())
+            gv = core.GameVersion.from_string(str(game_version))
+            server_handler_instance, request_result = ServerHandler.from_codes(
+                transfer_code, confirmation_code, cc, gv, print=False, save_backup=False
+            )
+            if server_handler_instance is None:
+                return None, request_result
+            return server_handler_instance.save_file, server_handler_instance
+        except Exception as e:
+            print(f"[ERROR] Modern download failed: {e}")
+            return None, None
+    
+    def upload_save_modern(save_file_obj, server_handler_instance):
+        try:
+            result = server_handler_instance.get_codes(upload_managed_items=True)
+            if result is None:
+                return None
+            transfer_code, confirmation_code = result
+            return {
+                'transferCode': transfer_code,
+                'pin': confirmation_code
+            }
+        except Exception as e:
+            print(f"[ERROR] Modern upload failed: {e}")
+            return None
+    
+    print("✅ Modern BCSFE package import successful!")
+    IMPORT_MODE = "modern"
+    
+except ImportError as e1:
+    print(f"❌ Modern import failed: {e1}")
+    
+    try:
+        print("🔄 Trying import strategy 2: Legacy BCSFE_Python...")
+        # Strategy 2: Legacy BCSFE_Python
+        from BCSFE_Python import helper, parse_save, server_handler
+        
+        def download_save_legacy(country_code, transfer_code, confirmation_code, game_version):
+            try:
+                # Check and format codes
+                transfer_code = helper.check_hex(transfer_code.lower().replace("o", "0"))
+                confirmation_code = helper.check_dec(confirmation_code.lower().replace("o", "0"))
+                
+                if not transfer_code or not confirmation_code:
+                    return None, None
+                
+                # Download save
+                numeric_game_version = helper.str_to_gv(str(game_version))
+                response = server_handler.download_save(
+                    country_code, transfer_code, confirmation_code, numeric_game_version
+                )
+                
+                save_data = response.content
+                if not server_handler.test_is_save_data(save_data):
+                    return None, None
+                
+                # Parse save
+                save_stats = parse_save.start_parse(save_data, country_code)
+                headers = response.headers
+                save_stats['token'] = headers.get('nyanko-password-refresh-token', '')
+                
+                return save_stats, None
+            except Exception as e:
+                print(f"[ERROR] Legacy download failed: {e}")
+                return None, None
+        
+        def upload_save_legacy(save_stats, save_file_path):
+            try:
+                # Serialize save
+                try:
+                    from BCSFE_Python import serialise_save
+                    modified_save_data = serialise_save.start_serialize(save_stats)
+                except ImportError:
+                    modified_save_data = helper.serialise_save.start_serialize(save_stats)
+                
+                # Write to file
+                helper.write_file_bytes(save_file_path, modified_save_data)
+                
+                # Upload
+                upload_data = server_handler.upload_handler(save_stats, save_file_path)
+                if upload_data is None:
+                    return None
+                
+                upload_result, updated_save_stats = upload_data
+                return upload_result
+            except Exception as e:
+                print(f"[ERROR] Legacy upload failed: {e}")
+                return None
+        
+        print("✅ Legacy BCSFE_Python import successful!")
+        IMPORT_MODE = "legacy"
+        
+    except ImportError as e2:
+        print(f"❌ All import strategies failed:")
+        print(f"   - Modern: {e1}")
+        print(f"   - Legacy: {e2}")
+        print("📝 Please install BCSFE: pip install bcsfe==3.0.0b8")
+        sys.exit(1)
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -27,17 +299,16 @@ app.secret_key = os.urandom(24)
 file_mutex = threading.Lock()
 result_mutex = threading.Lock()
 
-# Thiết lập CORS để chỉ cho phép các domain được chấp nhận
+# Thiết lập CORS
 ALLOWED_ORIGINS = [
     'http://example.com',
     'https://example.com',
     'http://localhost:5000',
     'http://127.0.0.1:5000',
     'https://bcsfe-web-app.onrender.com',
-    'http://localhost:54216'  # Thêm localhost của TheBattleCats
+    'http://localhost:54216'
 ]
 
-# Áp dụng CORS với các domain được chỉ định
 CORS(app, resources={
     r"/*": {
         "origins": ALLOWED_ORIGINS,
@@ -46,7 +317,6 @@ CORS(app, resources={
     }
 })
 
-# Middleware để kiểm tra origin
 @app.before_request
 def check_origin():
     origin = request.headers.get('Origin')
@@ -61,32 +331,26 @@ def check_origin():
     
     return None
 
-# Thư mục để lưu trữ file tạm thời
+# Thư mục lưu trữ file tạm thời
 UPLOAD_FOLDER = os.path.join(tempfile.gettempdir(), 'bcsfe_uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# API để tải xuống file save data
 @app.route('/api/download_save_data/<security_code>', methods=['GET'])
 def download_save_data(security_code):
     try:
-        # Đường dẫn tới file save data đã chỉnh sửa
-        modified_save_path = os.path.join(app.config['UPLOAD_FOLDER'], 'modified_save_file.sav')
+        modified_save_path = os.path.join(app.config['UPLOAD_FOLDER'], f'modified_save_file_{security_code}.sav')
         
-        # Kiểm tra xem file có tồn tại không
         if not os.path.exists(modified_save_path):
             return jsonify({'status': 'error', 'message': 'Không tìm thấy file save data'}), 404
         
-        # Sử dụng mutex để đảm bảo không có ai đang ghi vào file
         with file_mutex:
-            # Tạo bản sao tạm thời của file để tránh conflict khi tải xuống
             temp_file_path = os.path.join(app.config['UPLOAD_FOLDER'], f'download_copy_{security_code}_{uuid.uuid4()}.sav')
             with open(modified_save_path, 'rb') as src_file:
                 file_content = src_file.read()
                 with open(temp_file_path, 'wb') as dest_file:
                     dest_file.write(file_content)
         
-        # Gửi file đã sao chép
         response = send_file(
             temp_file_path,
             as_attachment=True,
@@ -94,7 +358,6 @@ def download_save_data(security_code):
             mimetype='application/octet-stream'
         )
         
-        # Thiết lập callback để xóa file tạm thời sau khi gửi
         @response.call_on_close
         def cleanup():
             try:
@@ -106,7 +369,6 @@ def download_save_data(security_code):
         return response
         
     except Exception as e:
-        import traceback
         print(f"[ERROR] Lỗi khi tải xuống file save data: {str(e)}")
         print(traceback.format_exc())
         return jsonify({
@@ -117,260 +379,254 @@ def download_save_data(security_code):
 
 @app.route('/api/auto_transfer', methods=['POST'])
 def auto_transfer():
-    # Tạo ID yêu cầu duy nhất
     request_id = str(uuid.uuid4())
-    # Tạo đường dẫn file riêng cho yêu cầu này
-    current_save_file = os.path.join(app.config['UPLOAD_FOLDER'], f'current_save_{request_id}.sav')
-    modified_save_file = os.path.join(app.config['UPLOAD_FOLDER'], f'modified_save_{request_id}.sav')
     
     try:
-        # Import cần thiết
         import datetime
         import json
         import requests
         
         # Lấy dữ liệu đầu vào
-        transfer_code = request.form.get('transfer_code', '')
-        confirmation_code = request.form.get('confirmation_code', '')
-        country_code = request.form.get('country_code', 'en')
-        game_version = request.form.get('game_version', '11.3.0')
+        transfer_code = request.form.get('transfer_code', '').strip()
+        confirmation_code = request.form.get('confirmation_code', '').strip()
+        country_code = request.form.get('country_code', 'en').strip()
+        game_version = request.form.get('game_version', '13.10.0').strip()
         cat_food = request.form.get('cat_food', None)
         change_inquiry = request.form.get('change_inquiry', 'true').lower() == 'true'
-        security_code = request.form.get('security_code', '1')  # Mặc định là 1
+        security_code = request.form.get('security_code', '1').strip()
         
-        print(f"[INFO] Bắt đầu auto_transfer với transfer_code={transfer_code}, confirmation_code={confirmation_code}, request_id={request_id}")
+        print(f"[INFO] Auto transfer started - Mode: {IMPORT_MODE}, Request ID: {request_id}")
+        print(f"[INFO] Transfer code: {transfer_code}, Confirmation: {confirmation_code}")
         
-        # Kiểm tra đầu vào
         if not transfer_code or not confirmation_code:
             return jsonify({'status': 'error', 'message': 'Mã chuyển giao và mã xác nhận là bắt buộc'})
         
-        # Kiểm tra định dạng mã
-        transfer_code = helper.check_hex(transfer_code.lower().replace("o", "0"))
-        confirmation_code = helper.check_dec(confirmation_code.lower().replace("o", "0"))
+        # Bước 1: Download save data
+        print(f"[INFO] Downloading save data using {IMPORT_MODE} mode...")
         
-        if not transfer_code or not confirmation_code:
-            return jsonify({'status': 'error', 'message': 'Định dạng mã không đúng'})
-        
-        # Bước 1: Tải xuống từ mã hiện tại
-        numeric_game_version = helper.str_to_gv(game_version)
-        response = server_handler.download_save(
-            country_code, transfer_code, confirmation_code, numeric_game_version
-        )
-        
-        save_data = response.content
-        if not server_handler.test_is_save_data(save_data):
-            return jsonify({'status': 'error', 'message': 'Mã chuyển giao/xác nhận không đúng hoặc không tìm thấy dữ liệu'})
-        
-        # Sử dụng file riêng cho yêu cầu này
-        helper.write_file_bytes(current_save_file, save_data)
-        print(f"[INFO] Đã tải xuống và lưu file tại: {current_save_file}")
-        
-        # Phân tích file save
-        save_stats = parse_save.start_parse(save_data, country_code)
-        headers = response.headers
-        save_stats['token'] = headers.get('nyanko-password-refresh-token', '')
-        original_inquiry = save_stats['inquiry_code']
-        print(f"[INFO] Original inquiry code: {original_inquiry}")
-        
-        # Bước 2: Chỉnh sửa dữ liệu (Cat Food) - Chọn 2 > 2 > y
-        original_values = {
-            'cat_food': save_stats['cat_food']['Value'],
-            'xp': save_stats['xp']['Value'],
-            'rare_tickets': save_stats['rare_tickets']['Value'],
-            'platinum_tickets': save_stats['platinum_tickets']['Value']
-        }
-        
-        # Xử lý cat food theo security code nếu không có giá trị cụ thể
-        if cat_food is None:
-            # Chọn giá trị cat food dựa trên security code
-            if security_code == '1':
-                cat_food = 19999
-            elif security_code == '2':
-                cat_food = 18000
-            elif security_code == '3':
-                cat_food = 2000
-            else:
-                cat_food = 19999  # Mặc định nếu không rõ security code
-        
-        save_stats['cat_food']['Value'] = int(cat_food)
-        print(f"[INFO] Đã thay đổi cat food thành: {save_stats['cat_food']['Value']}")
-        
-        # Bước 3: Thay đổi inquiry code nếu cần (Chọn 6 > 2)
-        new_inquiry = original_inquiry
-        inquiry_changed = False
-        
-        if change_inquiry:
-            try:
-                # Lấy inquiry code mới từ API
-                print("[INFO] Đang lấy inquiry code mới từ API...")
-                api_url = 'https://nyanko-backups.ponosgames.com/?action=createAccount&referenceId='
-                response = requests.get(api_url)
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    new_inquiry = data.get('accountId', '')
+        if IMPORT_MODE == "modern":
+            save_data_obj, server_handler_instance = download_save_modern(
+                country_code, transfer_code, confirmation_code, game_version
+            )
+            
+            if save_data_obj is None:
+                return jsonify({'status': 'error', 'message': 'Không thể tải save data. Kiểm tra mã chuyển giao/xác nhận.'})
+            
+            # Get original values
+            original_values = {
+                'cat_food': save_data_obj.catfood,
+                'xp': save_data_obj.xp,
+                'rare_tickets': save_data_obj.rare_tickets,
+                'platinum_tickets': save_data_obj.platinum_tickets,
+                'legend_tickets': save_data_obj.legend_tickets
+            }
+            original_inquiry = save_data_obj.inquiry_code
+            
+            # Modify cat food
+            if cat_food is None:
+                cat_food = 19999 if security_code == '1' else (18000 if security_code == '2' else 2000)
+            save_data_obj.catfood = int(cat_food)
+            
+            # Change inquiry if needed
+            new_inquiry = original_inquiry
+            inquiry_changed = False
+            
+            if change_inquiry:
+                try:
+                    print("[INFO] Getting new inquiry code...")
+                    api_url = 'https://nyanko-backups.ponosgames.com/?action=createAccount&referenceId='
+                    response = requests.get(api_url)
                     
-                    if new_inquiry:
-                        print(f"[INFO] Đã lấy inquiry code mới: {new_inquiry}")
-                        # Thay đổi inquiry code (Chọn 6 > 2)
-                        save_stats['inquiry_code'] = new_inquiry
-                        # Reset token vì inquiry code đã thay đổi
-                        save_stats['token'] = "0" * 40
-                        print(f"[INFO] Đã thay đổi inquiry code từ {original_inquiry} thành {new_inquiry}")
-                        inquiry_changed = True
-                    else:
-                        print("[INFO] Không thể lấy inquiry code mới từ API (accountId trống)")
-                else:
-                    print(f"[INFO] Lỗi khi truy cập API: {response.status_code}")
-            except Exception as e:
-                import traceback
-                print(f"[INFO] Lỗi khi thay đổi inquiry code: {str(e)}")
-                print(traceback.format_exc())
-        
-        # Cập nhật lại dữ liệu save file sau khi thay đổi
-        print("[INFO] Đang cập nhật lại dữ liệu save file...")
-        try:
-            from BCSFE_Python import serialise_save
-            modified_save_data = serialise_save.start_serialize(save_stats)
-        except ImportError:
-            print("[INFO] Không thể import serialise_save trực tiếp, thử import từ helper...")
-            modified_save_data = helper.serialise_save.start_serialize(save_stats)
+                    if response.status_code == 200:
+                        data = response.json()
+                        new_inquiry_code = data.get('accountId', '')
+                        
+                        if new_inquiry_code:
+                            save_data_obj.inquiry_code = new_inquiry_code
+                            new_inquiry = new_inquiry_code
+                            inquiry_changed = True
+                            print(f"[INFO] Changed inquiry code: {original_inquiry} → {new_inquiry}")
+                            
+                            # Reset tokens
+                            server_handler_instance.remove_stored_auth_token()
+                            server_handler_instance.remove_stored_save_key_data()
+                            server_handler_instance.remove_stored_password()
+                except Exception as e:
+                    print(f"[INFO] Error changing inquiry code: {e}")
             
-        # Sử dụng file riêng cho dữ liệu đã chỉnh sửa
-        helper.write_file_bytes(modified_save_file, modified_save_data)
-        print(f"[INFO] Đã lưu file đã chỉnh sửa tại: {modified_save_file}")
-        
-        # Bước 4: Upload để lấy mã mới (Chọn 1 > 3 > Enter)
-        print("[INFO] Đang upload save data để lấy mã mới...")
-        upload_data = server_handler.upload_handler(save_stats, modified_save_file)
-        
-        if upload_data is None:
-            print("[INFO] upload_handler trả về None")
-            return jsonify({
-                'status': 'error', 
-                'message': 'Không thể tải lên máy chủ',
-                'debug_info': {
-                    'original_inquiry': original_inquiry,
-                    'new_inquiry': new_inquiry,
-                    'token_reset': save_stats['token'] == "0" * 40,
-                    'cat_food_value': save_stats['cat_food']['Value'],
-                    'download_path_exists': os.path.exists(modified_save_file),
-                    'download_path_size': os.path.getsize(modified_save_file) if os.path.exists(modified_save_file) else 0
-                }
-            })
-        
-        upload_data, updated_save_stats = upload_data
-        print(f"[INFO] Upload thành công, đã nhận được dữ liệu mới")
-        
-        if upload_data is None or 'transferCode' not in upload_data:
-            print("[INFO] Không tìm thấy transferCode trong dữ liệu upload")
-            return jsonify({'status': 'error', 'message': 'Không nhận được mã chuyển giao mới'})
-        
-        # Kiểm tra lại inquiry code sau khi upload
-        final_inquiry = updated_save_stats['inquiry_code']
-        print(f"[INFO] Inquiry code sau khi upload: {final_inquiry}")
-        
-        # Lưu lại kết quả upload cuối cùng vào file
-        result_info = {
-            'transfer_code': upload_data['transferCode'],
-            'confirmation_code': upload_data['pin'],
-            'original_inquiry': original_inquiry,
-            'final_inquiry': final_inquiry,
-            'security_code': security_code,
-            'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        }
-        
-        # Lưu thông tin kết quả vào file với mutex
-        try:
-            with result_mutex:
-                result_path = os.path.join(app.config['UPLOAD_FOLDER'], 'latest_transfer_result.json')
-                with open(result_path, 'w') as f:
-                    json.dump(result_info, f, indent=2)
-                print(f"[INFO] Đã lưu thông tin kết quả vào {result_path}")
-        except Exception as e:
-            print(f"[INFO] Không thể lưu thông tin kết quả: {str(e)}")
-        
-        # Cập nhật file save data cho API download với mutex
-        with file_mutex:
-            shared_modified_path = os.path.join(app.config['UPLOAD_FOLDER'], 'modified_save_file.sav')
-            with open(modified_save_file, 'rb') as src_file:
-                file_content = src_file.read()
-                with open(shared_modified_path, 'wb') as dest_file:
-                    dest_file.write(file_content)
-            print(f"[INFO] Đã cập nhật file save data được chia sẻ tại: {shared_modified_path}")
+            # Upload to get new codes
+            print("[INFO] Uploading save data...")
+            upload_result = upload_save_modern(save_data_obj, server_handler_instance)
             
-        # Trả về kết quả
+            if upload_result is None:
+                return jsonify({'status': 'error', 'message': 'Không thể upload save data'})
+            
+            # Save file for download
+            modified_save_file = os.path.join(app.config['UPLOAD_FOLDER'], f'modified_save_file_{security_code}.sav')
+            with file_mutex:
+                try:
+                    save_data_bytes = save_data_obj.to_data()
+                    with open(modified_save_file, 'wb') as f:
+                        f.write(save_data_bytes.data)
+                except Exception as e:
+                    print(f"[ERROR] Error saving file: {e}")
+            
+            final_values = {
+                'cat_food': save_data_obj.catfood,
+                'xp': save_data_obj.xp,
+                'rare_tickets': save_data_obj.rare_tickets,
+                'platinum_tickets': save_data_obj.platinum_tickets,
+                'legend_tickets': save_data_obj.legend_tickets
+            }
+            
+        else:  # legacy mode
+            save_stats, _ = download_save_legacy(
+                country_code, transfer_code, confirmation_code, game_version
+            )
+            
+            if save_stats is None:
+                return jsonify({'status': 'error', 'message': 'Không thể tải save data. Kiểm tra mã chuyển giao/xác nhận.'})
+            
+            # Get original values
+            original_values = {
+                'cat_food': save_stats['cat_food']['Value'],
+                'xp': save_stats['xp']['Value'],
+                'rare_tickets': save_stats['rare_tickets']['Value'],
+                'platinum_tickets': save_stats['platinum_tickets']['Value']
+            }
+            original_inquiry = save_stats['inquiry_code']
+            
+            # Modify cat food
+            if cat_food is None:
+                cat_food = 19999 if security_code == '1' else (18000 if security_code == '2' else 2000)
+            save_stats['cat_food']['Value'] = int(cat_food)
+            
+            # Change inquiry if needed
+            new_inquiry = original_inquiry
+            inquiry_changed = False
+            
+            if change_inquiry:
+                try:
+                    print("[INFO] Getting new inquiry code...")
+                    api_url = 'https://nyanko-backups.ponosgames.com/?action=createAccount&referenceId='
+                    response = requests.get(api_url)
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        new_inquiry_code = data.get('accountId', '')
+                        
+                        if new_inquiry_code:
+                            save_stats['inquiry_code'] = new_inquiry_code
+                            save_stats['token'] = "0" * 40
+                            new_inquiry = new_inquiry_code
+                            inquiry_changed = True
+                            print(f"[INFO] Changed inquiry code: {original_inquiry} → {new_inquiry}")
+                except Exception as e:
+                    print(f"[INFO] Error changing inquiry code: {e}")
+            
+            # Upload to get new codes
+            print("[INFO] Uploading save data...")
+            modified_save_file = os.path.join(app.config['UPLOAD_FOLDER'], f'modified_save_file_{security_code}.sav')
+            upload_result = upload_save_legacy(save_stats, modified_save_file)
+            
+            if upload_result is None:
+                return jsonify({'status': 'error', 'message': 'Không thể upload save data'})
+            
+            final_values = {
+                'cat_food': save_stats['cat_food']['Value'],
+                'xp': save_stats['xp']['Value'],
+                'rare_tickets': save_stats['rare_tickets']['Value'],
+                'platinum_tickets': save_stats['platinum_tickets']['Value']
+            }
+        
+        # Prepare result
         result = {
             'status': 'success',
             'message': 'Đã tạo mã chuyển giao mới thành công',
+            'mode': IMPORT_MODE,
             'old_transfer_code': transfer_code,
             'old_confirmation_code': confirmation_code,
-            'new_transfer_code': upload_data['transferCode'],
-            'new_confirmation_code': upload_data['pin'],
+            'new_transfer_code': upload_result['transferCode'],
+            'new_confirmation_code': upload_result['pin'],
             'original_values': original_values,
-            'modified_values': {
-                'cat_food': updated_save_stats['cat_food']['Value'],
-                'xp': updated_save_stats['xp']['Value'],
-                'rare_tickets': updated_save_stats['rare_tickets']['Value'],
-                'platinum_tickets': updated_save_stats['platinum_tickets']['Value']
-            },
+            'modified_values': final_values,
             'original_inquiry': original_inquiry,
-            'new_inquiry': final_inquiry,
-            'inquiry_changed': original_inquiry != final_inquiry,
+            'new_inquiry': new_inquiry,
+            'inquiry_changed': inquiry_changed,
             'security_code': security_code,
             'save_data_url': f'/api/download_save_data/{security_code}'
         }
         
-        print(f"[INFO] Hoàn thành auto_transfer: {result['status']}")
+        # Save result info
+        try:
+            with result_mutex:
+                result_path = os.path.join(app.config['UPLOAD_FOLDER'], 'latest_transfer_result.json')
+                with open(result_path, 'w') as f:
+                    json.dump(result, f, indent=2)
+        except Exception as e:
+            print(f"[INFO] Could not save result info: {e}")
+        
+        print(f"[INFO] Auto transfer completed successfully!")
         return jsonify(result)
         
     except Exception as e:
-        import traceback
         error_trace = traceback.format_exc()
-        print(f"[INFO] Lỗi trong auto_transfer: {str(e)}")
+        print(f"[ERROR] Error in auto_transfer: {str(e)}")
         print(error_trace)
-        return jsonify({'status': 'error', 'message': f'Lỗi khi xử lý: {str(e)}', 'trace': error_trace})
-    finally:
-        # Dọn dẹp các file tạm thời
-        try:
-            if os.path.exists(current_save_file):
-                os.remove(current_save_file)
-            if os.path.exists(modified_save_file):
-                os.remove(modified_save_file)
-            print(f"[INFO] Đã dọn dẹp các file tạm thời cho request_id={request_id}")
-        except Exception as cleanup_error:
-            print(f"[WARNING] Không thể dọn dẹp file tạm: {str(cleanup_error)}")
+        return jsonify({
+            'status': 'error', 
+            'message': f'Lỗi khi xử lý: {str(e)}', 
+            'trace': error_trace
+        }), 500
 
 @app.route('/')
 def index():
-    """Trang chủ đơn giản"""
-    return "API Auto Transfer hoạt động bình thường. Sử dụng /api/auto_transfer với phương thức POST."
+    return f"🐱 BCSFE API v2.0 ({IMPORT_MODE} mode) hoạt động bình thường. Sử dụng /api/auto_transfer với phương thức POST."
 
 @app.route('/test')
 def test():
-    """API kiểm tra"""
     try:
         return jsonify({
             'status': 'success',
             'message': 'Hệ thống hoạt động bình thường',
-            'import_status': 'Đã import BCSFE_Python thành công',
+            'import_mode': IMPORT_MODE,
+            'import_status': f'Đã import BCSFE ({IMPORT_MODE}) thành công',
             'upload_folder': app.config['UPLOAD_FOLDER'],
             'upload_folder_exists': os.path.exists(app.config['UPLOAD_FOLDER']),
-            'threading_enabled': True
+            'threading_enabled': True,
+            'available_endpoints': [
+                'POST /api/auto_transfer',
+                'GET /api/download_save_data/<security_code>',
+                'GET /test',
+                'GET /api/health'
+            ]
         })
     except Exception as e:
         return jsonify({
             'status': 'error',
-            'message': f'Lỗi: {str(e)}'
+            'message': f'Lỗi: {str(e)}',
+            'traceback': traceback.format_exc()
         })
 
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        'status': 'healthy',
+        'mode': IMPORT_MODE,
+        'timestamp': time.time(),
+        'version': '2.0.0'
+    })
+
 if __name__ == '__main__':
-    # Chạy Flask với threading và số lượng luồng tối đa là 10
     import werkzeug.serving
     from werkzeug.serving import WSGIRequestHandler
     
-    # Tăng thời gian timeout cho các kết nối
     WSGIRequestHandler.protocol_version = "HTTP/1.1"
     
-    print("[INFO] Khởi động server với threading được bật...")
+    print(f"[INFO] 🚀 Starting BCSFE API v2.0 in {IMPORT_MODE} mode...")
+    print("[INFO] 📋 Available endpoints:")
+    print("[INFO]   - POST /api/auto_transfer")
+    print("[INFO]   - GET  /api/download_save_data/<security_code>")
+    print("[INFO]   - GET  /test")
+    print("[INFO]   - GET  /api/health")
     app.run(debug=True, threaded=True, host='0.0.0.0', port=5000)

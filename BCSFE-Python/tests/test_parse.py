@@ -1,34 +1,27 @@
-import os
-from BCSFE_Python import parse_save, patcher, serialise_save
+from bcsfe import core
 
 
-def test_parse():
-    """Test parse save data"""
+def run():
+    saves_path = core.Path(__file__).parent().add("saves")
 
-    # get all files in the saves dir
-    save_files: list[str] = []
-    for file in os.listdir(os.path.join(os.path.dirname(__file__), "saves")):
-        path = os.path.join(os.path.dirname(__file__), "saves", file)
-        if (
-            os.path.isfile(path)
-            and not file.endswith(".bak")
-            and not file.endswith("_backup")
-        ):
-            save_files.append(path)
+    for file in saves_path.get_files():
+        print(f"Testing {file.basename()}")
+        data1 = file.read()
 
-    _ = [run_testparse(file) for file in save_files]
+        save_1 = core.SaveFile(data1)
+        data_2 = save_1.to_data()
 
+        assert data1 == data_2
 
-def run_testparse(file: str):
-    """Run test parse save data"""
-    data_1 = open(file, "rb").read()
-    gv = parse_save.get_game_version(data_1)
-    if gv < 110000:
-        return
-    gv_c = patcher.detect_game_version(data_1)
-    print(f"Parsing {file} - {gv} - {gv_c}")
-    save_stats = parse_save.parse_save(data_1, gv_c)
-    data_2 = serialise_save.serialize_save(save_stats)
-    save_stats = parse_save.parse_save(data_2, gv_c)
-    data_3 = serialise_save.serialize_save(save_stats)
-    assert data_2 == data_3 == data_1
+        json_data_1 = save_1.to_dict()
+
+        save_3 = core.SaveFile.from_dict(json_data_1)
+        json_data_2 = save_3.to_dict()
+
+        assert json_data_1 == json_data_2
+
+        data_3 = save_3.to_data()
+
+        assert data1 == data_3
+
+        print(f"Tested {file.basename()} {save_1.game_version}")

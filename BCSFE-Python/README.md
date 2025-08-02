@@ -1,200 +1,362 @@
 # Battle Cats Save File Editor
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/M4M53M4MN)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/fieryhenry)
 
-A python save editor for the mobile game The Battle Cats
+[![LiberaPay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/fieryhenry)
 
-Join the [discord server](https://discord.gg/DvmMgvn5ZB) if you want to suggest new features, report bugs or get help on how to use the editor (please read the below tutorials / watch the latest [tutorial video](https://www.youtube.com/watch?v=Kr6VaLTXOSY) first before asking for help).
+BCSFE is a python command line save editor for The Battle Cats.
+
+Join the [discord server](https://discord.gg/DvmMgvn5ZB) if you want to suggest
+new features, report bugs or get help on how to use the editor (please read the
+below tutorials first before asking for help).
 
 ## Thanks to
 
-Lethal's editor for giving me inspiration to start the project and it helped me work out how to patch the save data and edit cf/xp: <https://www.reddit.com/r/BattleCatsCheats/comments/djehhn/editoren/>
+Lethal's editor for giving me inspiration to start the project and it helped me
+work out how to patch the save data and edit cf/xp: <https://www.reddit.com/r/BattleCatsCheats/comments/djehhn/editoren/>
 
-Beeven and csehydrogen's open source code, which helped me figure out how to patch save data: [beeven/battlecats](https://github.com/beeven/battlecats), [csehydrogen/BattleCatsHacker](https://github.com/csehydrogen/BattleCatsHacker)
+Beeven and csehydrogen's free and open source code, which helped me figure out how to
+patch save data: [beeven/battlecats](https://github.com/beeven/battlecats), [csehydrogen/BattleCatsHacker](https://github.com/csehydrogen/BattleCatsHacker)
 
-Everyone who's given me saves, which helped to test save parsing/serialising and to test/develop new features
+Anyone who has supported my on [Ko-Fi](https://ko-fi.com/fieryhenry) or [LiberaPay](https://liberapay.com/fieryhenry)
 
-## How to use
+Everyone who's given me saves, which helped to test save loading/saving and to
+test/develop new features
 
-If you have a pc: watch a [Tutorial video](https://www.youtube.com/watch?v=Kr6VaLTXOSY), or scroll down for a text tutorial
+### Localization
 
-If you only have an android device: read the [Android text tutorial](https://github.com/fieryhenry/BCSFE-Python#android-tutorial)
+- HungJoesifer for Vietnamese localization
 
-If you only have an ios device: watch the [IOS tutorial video](https://www.youtube.com/watch?v=xw-uOqQRYJ8) (Made by Viarules, NOTE: Some people have said that ish is really slow, and you should use a-shell instead)
+## Installation
 
-## Main tutorial
+Note the following tutorials are for the device you wish to run the editor on, not the device
+that you have the game installed on.
 
-You no longer need a rooted device nor a rooted android emulator.
+For example just because you have the game on an android device, does not mean you have to run
+the editor on it. It is easier to run the editor on a PC / laptop rather than on a mobile device.
 
-Although if you want to get unbanned / fix the elsewhere error you will still need one. I recommend LDPlayer, Nox, or MEmu if needed. Bluestacks is also an option but is more difficult to root as it doesn't have a built in option.
+### Windows / MacOS
 
----
+1. Install Python 3.9 or later if you don't already have it: <https://www.python.org/downloads/>
 
-1. Install python (You'll need version 3.9 and up) <https://www.python.org/downloads/>
+2. Open a terminal such as PowerShell or Command Prompt
 
-2. Enter the command: `py -m pip install -U battle-cats-save-editor` into command prompt or another terminal to install the editor (**NOT the Windows Python app**). If that doesn't work then use `python3` or `python` instead of `py` in the command
+3. Run the following command:
 
-3. Enter the command: `py -m BCSFE_Python` to run the editor. If that doesn't work then use `python3` or `python` instead of `py` in the command
+```powershell
+py -m pip install bcsfe
+```
 
-4. Look below for the tutorial that you need, or watch [here](https://www.youtube.com/watch?v=Kr6VaLTXOSY) for a video
+4. If you get an error saying that `py` is not a recongnised command, then try:
 
-#### Using Transfer Codes
+```powershell
+python -m pip install bcsfe
+```
 
-If you don't have a rooted device or an emulator setup then do this:
+or
 
-5. Go into the game and look in the top right of the screen and record / remember the game version
+```powershell
+python3 -m pip install bcsfe
+```
 
-6. Go into the in-game transfer system in `Settings-> Data Transfer` and click `Begin Data Transfer`
+5. If you get an error saying `No module named pip`, then run:
 
-7. In the editor use the option called `Download save data from the game using transfer and confirmation codes` (enter the corresponding number, not the name itself)
+```powershell
+py -m ensurepip --upgrade
+```
 
-8. Enter the game version that you are using, `en`=english, `kr`=korean, `ja`=japanese, `tw`=taiwan.
+Again change `py` for `python` or `python3` if needed
 
-9. Enter your transfer code
+5. To run the editor, as long as Python is in your PATH, you should be able to run:
 
-10. Enter your confirmation code
+```powershell
+bcsfe
+```
 
-11. Enter the game version that you recorded earlier in step 5. If you entered everything in correctly it should work and you should be able to select a place to put the save
+6. If Python is not in your path you'll need to run:
 
-12. If you get a parsing error please join the [discord server](https://discord.gg/DvmMgvn5ZB) and report it in #bug-reports and / or dm me your save file (preferably <b>not</b> transfer codes)
+```powershell
+py -m bcsfe
+```
 
-13. Edit what you want
+Again change `py` for `python` or `python3` if needed.
 
-14. Go into the `Save Management` option and select `Save changes and upload to game servers (get transfer and confirmation codes)`. It may take some time
+If you are using Windows and you are still struggling, try watching this video [here](https://youtu.be/ypmT39jqZrg).
 
-15. Enter those codes into the game's transfer system (click on `Resume Data Transfer`) (You may need to `Cancel Data Transfer` in-game before doing so)
+### Linux
 
-16. If you press play you may get a `The current Save Data is in violation` message, if so press ok and try again and it should go away, if it doesn't look at the tutorial below
+1. Install Python 3.9 or later using your system's package manager if you don't already have it
 
-#### Using a rooted device
+2. You might have to install pip seperately with a package called `python-pip` or something similar
+or you can run the following command:
 
-If you can't upload your save data using the in-game system because your are banned or the `This save data is currently active elsewhere` message appears, you will need direct access to the save data:
+```sh
+python3 -m ensurepip --upgrade
+```
 
-If you don't have a rooted device:
+3. Depending on your distro you might not be able to install the editor directly using the system
+pip and you might need to use pipx (python-pipx) or create a virtual environment manually.
 
-5. You will need to get one of the emulators listed earlier, I recommend LD Player because I know that it works with this method. If you change the default install location, make sure to keep a note of it for it later
+4. Using pipx:
 
-   1. Enable `root permission` in the settings and under `ADB Debugging` select `Open local connection`. You will need to restart LD Player for the changes to work
+```sh
+pipx install bcsfe
+```
 
-   2. Open the editor and select the option named `Use adb to pull the save from a rooted device` and enter your game version
+5. If `~/.local/bin/` is in your path you should be able to run the editor with the command:
 
-6. If you get the option to add adb to your path, select enter `y`.
+```sh
+bcsfe
+```
 
-7. The editor will look for adb in default install directories of common emulators and add it automatically
+6. You may also need to install `tk` with your system package manager to open the
+file selection dialog. This package may be called `tk` or `python-tk` or `python3-tk`.
 
-8. If it fails, then you will need to either
+If anyone wants to put the editor on the AUR or another package repo, feel free, I'll be happy to
+help if needed.
 
-   1. Enter the path to your emulator's install directory, it might look like `C:\LDPlayer\LDPlayer4.0`
+### Android
 
-   2. Download adb with from [here](https://dl.google.com/android/repository/platform-tools-latest-windows.zip). Extract the zip and copy the folder path (not adb.exe itself) into the editor
+You need to install a terminal emulator to be able to install and run Python packages.
 
-9. Now rerun the editor and try the option again. If it still doesn't work you'll need to manually do it, using the tutorial below.
+[Termux](https://termux.dev/en/) is a good option and is what this tutorial will use.
 
-10. If you get a parsing issue please join the [discord server](https://discord.gg/DvmMgvn5ZB) and report it in #bug-reports and / or dm me your save file (preferably not transfer codes)
+1. Download Termux, you can either get it from [F-Droid](https://f-droid.org/), or the APK directly
+from [GitHub](https://github.com/termux/termux-app?tab=readme-ov-file#github). DO NOT use the
+Google Play Store version, as it does not fully work.
 
-11. Edit what you want
+I recommend using F-Droid since it can update Termux for you (and it's just a better alternative
+than using the Google Play Store).
 
-12. Go into save management and select an option to push save data to the game
+On F-Droid Termux is called `Termux Terminal emulator with packages`
 
-13. Enter the game and you should see changes
+2. Once Termux is installed, open it and run the following commands:
 
-### Put adb in path
+```sh
+termux-setup-storage
+termux-change-repo
+pkg update
+pkg upgrade
+pkg install python python-pip
+```
 
-To use the options in the editor to get and push your save data to the game, you will need to have adb in your path system environment variable. The editor will try to do this automatically, but it may not work. So do this if it doesn't (If you're not using windows look up how to do this):
+When it asks for a mirror, it doesn't really matter which one you pick, the default single mirror
+works fine.
 
-1. If you are using an emulator: Go to your emulator's install directory, if you're
-   using LDPlayer it will most likely be in `C:/LDPlayer/LDPlayer4.0`.
-   Then find `adb` in that folder (other emulators might have it in the `bin` directory)
+3. Install the editor with the following command:
 
-2. If you aren't using an emulator [Download the Android SDK Platform Tools ZIP file for Windows](https://dl.google.com/android/repository/platform-tools-latest-windows.zip), and unzip it.
+```sh
+pip install bcsfe
+```
 
-3. Copy the path to the folder that you are in (not adb.exe itself)
+Or if that doesn't work try:
 
-4. Then open the windows start menu and search: `edit the system environment variables` and press enter.
+```sh
+python -m pip install bcsfe
+```
 
-5. Then click on the `Environment Variables` button.
+4. Run the editor with the following command:
 
-6. Then in the `System variables` box find the variable named `Path`, then
-   click on the `edit` button.
+```sh
+bcsfe
+```
 
-7. Then click `New` and paste the path into it.
+Or if that doesn't work try:
 
-8. Click `Ok` then `Ok` again then `Ok` again.
+```sh
+python -m bcsfe
+```
 
-9. Relaunch powershell and maybe restart your whole pc, and try the command
-   again.
+Note that the editor might give you warnings about tkinter not being installed, you can just
+ignore those as tkinter will not work on mobile. This just means that instead of a graphical file
+selection dialog, you just have to type the file path manually.
 
-If this method is too difficult, just use a root file explorer instead
-    and manually get the files that you want. The path that you will need is: `/data/data/jp.co.ponos.battlecatsen/files/SAVE_DATA`
+For example to save your save file to your downloads directory, the path might look something like
+`/storage/emulated/0/Download/SAVE_DATA` or `/sdcard/Download/SAVE_DATA`
 
-### How to fix "This save data is currently active elsewhere" or "The current Save Data is in violation"
 
-1. You will need to get access to save data so you will need a rooted device / emulator, so look at the first part of the `Using a rooted device` tutorial.
+### iOS
 
-2. Select the option in `Inquiry Code / Token` to `Fix elsewhere error / Unban account`
+I do not have an iOS device, so there is no text tutorial, but Viarules has made a video
+tutorial [here](https://www.youtube.com/watch?v=xw-uOqQRYJ8). The video uses iSH which is
+apparently quite slow, and other people recommend using a-Shell instead.
 
-3. It may take some time but after, you should be able to choose one of the options in save management to push the save data to the game.
 
-4. If you press play you may get a `The current Save Data is in violation` message, if so press ok and try again and it should go away, if it doesn't then either you've done something wrong or the process didn't work. You may need to follow the tutorial in the second part of the old help video [here](https://www.youtube.com/watch?v=xBnGR1A3A-U) (3:40) and use the `Old Fix elsewhere error / Unban account (needs 2 save files)` feature instead
+## Terms of Use
 
-### How to unban an account
+By using the editor you agree to the following:
 
-You can get banned for editing in any amount of cat food, rare tickets, platinum tickets or legend tickets.
+If you are using the editor to run a paid service that profits off of the editor
+(e.g a service to provide people with hacked accounts, or a paid discord bot to edit people's accounts,
+etc) you must make it very clear that you are using this save editor.
 
-The way you fix it is the same method as the elsewhere fix, so just follow that.
+This should be done by linking this GitHub page, and explicitly stating that the tool you are
+using is available for free and that they don't need to use your service to hack their account.
 
-##### How to prevent a ban in the future
+This information needs to be visible and something the customer agrees to **before** any payment is made.
+
+This also includes paid services which claim to teach people "How To Hack The Battle Cats". In those
+cases, this still applies, so you still need to state and have the customer acknowledge the things
+I said above.
+
+Free services / derivative works (such as a third party discord bot or editor gui) are fine to use
+the editor under the hood as long as you abide by the [License](#license). Basically if you are
+distributing a program which uses the editor, you need to license your own program under the GPL
+or a compatible license (basically make it open source / free software too).
+
+These terms are designed to prevent scams and the exploitation of users.
+
+Also if you **are** profiting from the editor, it would be greatly appreciated if you could
+give back something and support me.
+
+## Usage
+
+Once you have installed and ran the editor, you can now begin to edit your save file!
+
+1. In `The Battle Cats` enter the `Change Account / Device` menu in the `Settings` on the main menu.
+
+2. Then enter the `Begin Data Transfer` menu.
+
+3. Then click / tap `Save Data to Server`, this should give you a transfer code and a confirmation
+code.
+
+4. In the editor use the option called `Download save file using transfer and
+confirmation code` by entering the number `1`
+
+5. Enter your transfer code
+
+6. Enter your confirmation code
+
+7. Select the country code that you are using, `en`=english,
+`kr`=korean, `jp`=japanese, `tw`=taiwanese.
+
+Note that `en` also includes the `it`, `es`, `fr`, `th`, and `de` translations.
+
+8. Edit what you want. Note that in most cases, if you want to exit the current
+   input you can enter `q` and press enter to go back to the previous menu
+
+9. In the editor, go into the `Save Management` category and select `Save changes and upload to
+game servers (get transfer and confirmation codes)`. It may take some time, it
+may also fail, if it does then try again.
+
+10. This should give you a new transfer code and a new confirmation code.
+
+11. Back in-game, tap the `Close Game` button, then tap `Cancel Data Transfer` (and also possibly
+`Start Game From Beginning`)
+
+12. Go back into the `Change Account / Device` menu and then go into the `Resume Data Transfer`
+menu
+
+13. Enter the new codes, and tap `Resume Transfer`
+
+14. Then done! You should see your edits in-game.
+
+15. Every time that you want to make an edit to your save, you will have to re-upload it to the
+game servers in the editor and re-download it in-game, the saves aren't automatically linked together.
+
+Apparently doing the Google Account / Apple Account link limits the number of data transfers you can
+do within a certain time. So to be safe, I would avoid linking your account.
+
+### Using a rooted device via adb
+
+1. Add adb to your PATH environment variable, or edit the config to set ADB path editor config option
+  to the full path of the adb executable. You can download adb from
+  [platform-tools](https://developer.android.com/studio/releases/platform-tools)
+
+1. Open the editor and select the option named `Pull save file from device
+using adb` and enter your game version, or select the option named
+`Select save file from file` and select a copy of your save data
+
+1. Edit what you want
+
+1. Go into save management and select an option to push save data to the game
+
+1. Enter the game and you should see changes
+
+### Using a rooted device directly
+
+1. You need to be running the editor on the device itself, so you'll need to
+follow the [Android tutorial](#android) to install the editor
+
+1. You may have to run the editor with `sudo python -m bcsfe` or something, so you might have to
+setup the termux root repo and run `pkg install sudo`
+
+1. In the editor select the option named `Pull save file from root storage`
+
+1. Edit what you want
+
+1. Go into save management and select an option to push save data to the game
+
+1. Enter the game and you should see changes
+
+
+### How to unban your account
+
+1. Select the option in `Account` to `Unban account` or
+just upload the save data to the game servers again
+
+1. It may take some time but after, you should be able to choose one of the
+options in save management to push the save data to the game.
+
+#### How to prevent a ban in the future
 
 - Instead of editing in platinum tickets use the `Platinum Shards` feature
 
-- Instead of editing in rare tickets use the `Normal Ticket Max Trade Progress (allows for unbannable rare tickets)` feature
+- Instead of editing in rare tickets use the `Normal Ticket Max Trade Progress
+(allows for unbannable rare tickets)` feature
 
-- Instead of hacking in cat food, just edit everything in that you can buy with cat food, e.g battle items, catamins, xp, energy refills (leaderships), etc. If you really want catfood then you can clear and unclear catnip missions with the feature `Catnip Challenges / Missions` then entering 1 when asked. You'll need to collect the catfood in-game after each clear though
+- Instead of hacking in cat food, just edit everything in that you can buy with
+cat food, e.g battle items, catamins, xp, energy refills (leaderships), etc.
+If you really want catfood then you can clear and unclear catnip missions with
+the feature `Catnip Challenges / Missions` then entering 1 when asked.
+You'll need to collect the catfood in-game after each clear though
 
 - Instead of hacking in tickets, just hack in the cats/upgrades you want directly
 
-## Android Tutorial
-
-If you don't have a pc to install and run the editor you can use Termux.
-
-1. Download [F-Droid](https://f-droid.org/F-Droid.apk) - You can download the Termux apk directly but then it won't automatically update
-
-2. Install F-Droid
-
-3. Open it and wait for it to finish `Updating repositories`
-
-4. Tap the green search button in the bottom right and search for `Termux`
-
-5. Tap `Termux Terminal emulator with packages`
-
-6. Tap `INSTALL` and then `OPEN` once installed
-
-7. Once opened enter the command `pkg install python`
-
-8. If that doesn't work then read this: <https://stackoverflow.com/a/71097459>
-
-9. Then run `python -m pip install -U battle-cats-save-editor`
-
-10. If that doesn't work then run `pkg upgrade` and try again
-
-11. Then run `python -m BCSFE_Python`
-
-12. You can then use the editor like normal (If asked to enter the path to a save file, then just enter `SAVE_DATA`)
-
 ### Install from source
 
-If you want the latest features and don't mind bugs then you can install the editor from the github.
+If you want the latest features then you can install the editor from the github.
 
 1. Download [Git](https://git-scm.com/downloads)
 
 2. Run the following commands: (You may have to replace `py` with `python` or `python3`)
 
-```batch
+```sh
 git clone https://github.com/fieryhenry/BCSFE-Python.git
-py -m pip install -e BCSFE-Python/
-py -m BCSFE_Python
+cd BCSFE-Python
+py -m pip install -e .
+py -m bcsfe
 ```
 
-If you want to use the editor again all you need to do is run the `py -m BCSFE_Python` command
+Then if you want the latest changes you only need to run `git pull` in the downloaded
+`BCSFE-Python` folder. (use `cd` to change the folder)
 
-Then if you want the latest changes you only need to run `git pull` in the downloaded `BCSFE-Python` folder. (use `cd` to change the folder)
+Alternatively you can use pip directly, although it won't auto-update with the latest
+git commits.
+
+```sh
+py -m pip install git+https://github.com/fieryhenry/BCSFE-Python.git
+py -m bcsfe
+```
+
+If you want to use the editor again all you need to do is run the `py -m bcsfe` command
+
+## Documentation
+
+- [Custom Editor Locales](https://github.com/fieryhenry/ExampleEditorLocale)
+- [Custom Editor Themes](https://github.com/fieryhenry/ExampleEditorTheme)
+
+I only have documentation for the locales and themes atm, but I will probably
+add more documentation in the future.
+
+## Contributing
+
+If you want to contribute to the BCSFE, I recommend joining the [Discord Server](https://discord.gg/DvmMgvn5ZB) and starting a
+discussion in #dev-chat, or create an issue in this repo, or a draft pull request.
+
+If you need help with reverse engineering the save file, I have a basic starting guide here:
+<https://codeberg.org/fieryhenry/bc_ree>.
+
+## License
+
+BCSFE is licensed under the GNU GPLv3 which can be read [here](https://www.gnu.org/licenses/gpl-3.0.en.html).
